@@ -17,8 +17,6 @@ public class KVQuery {
 	private static final String LINE_FEED = "\n";
 	private static final String RETURN = "\r";
 
-
-
 	//TODO implement 0 parameters (and change name of 'key' and 'value'). Connect and disconnect related messages
 	public KVQuery(byte[] bytes) throws InvalidMessage {
 		String arguments;
@@ -59,24 +57,22 @@ public class KVQuery {
 			this.command = StatusType.ERROR;
 		}
 	}
-
-	public StatusType getCommand() {
-		return this.command;
+	
+	public KVQuery(StatusType command, String argument) {
+		this.command = command;
+		this.key = argument;
+		this.twoCommands = false;
 	}
-
-	public String getKey() {
-		return this.key;
-	}
-
-	public String getValue() throws InvalidMessage {
-		if (this.value == null) {
-			throw new InvalidMessage();
-		}
-		return this.value;
+	
+	public KVQuery(StatusType command, String argument1, String argument2) {
+		this.command = command;
+		this.key = argument1;
+		this.value = argument2;
+		this.twoCommands = false;
 	}
 
 	//TODO handle the Exception, instead of throwing it
-	private byte[] toBytes() throws UnsupportedEncodingException {
+	public byte[] toBytes() throws UnsupportedEncodingException {
 		ByteBuffer byteBuffer = ByteBuffer.allocate(DROP_SIZE);
 
 		byteBuffer.put(command.toString().getBytes());
@@ -94,15 +90,21 @@ public class KVQuery {
 
 		return byteBuffer.array();
 	}
+	
+	public StatusType getCommand() {
+		return this.command;
+	}
 
-	/*private String getString(byte[] bytes, int index, int length) {
-		//TODO handle exception or throw and handle in the constructor
+	public String getKey() {
+		return this.key;
+	}
 
-		String tmp = new String(bytes, index, length);
-		index += length;
-		// THIS DOESN'T WORK. JAVA IS PASS-BY-VALUE
-		return tmp;
-	}*/
+	public String getValue() throws InvalidMessage {
+		if (this.value == null) {
+			throw new InvalidMessage();
+		}
+		return this.value;
+	}
 
 	private void setType(String command) {
 		switch (command) {
