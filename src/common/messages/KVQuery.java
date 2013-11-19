@@ -41,6 +41,10 @@ public class KVQuery {
 		}
 	}
 	
+	public KVQuery() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public StatusType getCommand() {
 		return this.command;
 	}
