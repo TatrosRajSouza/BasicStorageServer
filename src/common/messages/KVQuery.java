@@ -17,12 +17,15 @@ public class KVQuery {
 	private StatusType command;
 	private String key;
 	private String value;
+	
 	private String[] arguments;
-	private int index;
+	
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
+	
 	private static final String LINE_FEED = "\n";
 	private static final String RETURN = "\r";
+	
 	private static Logger logger = Logger.getRootLogger();
 
 	/**
@@ -32,10 +35,10 @@ public class KVQuery {
 	 */
 	public KVQuery(byte[] bytes) throws InvalidMessage {
 		String message;
+		int index = 0;
 		//TODO put this in Client and Server main
-		//System.setProperty("file.encoding", "US-ASCII");
+		System.setProperty("file.encoding", "US-ASCII");
 
-		index = 0;
 		message = new String(bytes);
 		arguments = message.split("\n");
 
