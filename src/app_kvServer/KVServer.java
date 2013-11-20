@@ -16,7 +16,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 
-import app_kvClient.KVClient;
+
 
 
 
@@ -82,8 +82,8 @@ public class KVServer extends Thread {
 			while(isRunning()){
 				try {
 					Socket client = serverSocket.accept();                
-					KVClient connection = 
-							new KVClient(client);
+					ClientConnection connection = 
+							new ClientConnection(client);
 					new Thread(connection).start();
 
 					logger.info("Connected to " 
@@ -158,23 +158,23 @@ public class KVServer extends Thread {
 	}
 }*/
 	//only for testing
-public static void main(String[] args) {
-	try {
-		new LogSetup("logs/server.log", Level.ALL);
-		System.setProperty("file.encoding", "US-ASCII");
+	public static void main(String[] args) {
+		try {
+			new LogSetup("logs/server.log", Level.ALL);
+			System.setProperty("file.encoding", "US-ASCII");
 			int port = 50000;
 			new KVServer(port).start();
-	
-	} catch (IOException e) {
-		System.out.println("Error! Unable to initialize logger!");
-		e.printStackTrace();
-		System.exit(1);
-	} catch (NumberFormatException nfe) {
-		System.out.println("Error! Invalid argument <port>! Not a number!");
-		System.out.println("Usage: Server <port>!");
-		System.exit(1);
+
+		} catch (IOException e) {
+			System.out.println("Error! Unable to initialize logger!");
+			e.printStackTrace();
+			System.exit(1);
+		} catch (NumberFormatException nfe) {
+			System.out.println("Error! Invalid argument <port>! Not a number!");
+			System.out.println("Usage: Server <port>!");
+			System.exit(1);
+		}
 	}
-}
 }
 /*public static void main(String[] args) {
 		try {
