@@ -1,93 +1,118 @@
 package common.messages;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+
+import org.apache.log4j.Logger;
 
 import common.messages.KVMessage.StatusType;
 
+/**
+ * Create a message from or to client/server.
+ * Implements the protocol established for this application
+ * @author Claynon de Souza
+ *
+ */
 public class KVQuery {
 	private StatusType command;
 	private String key;
 	private String value;
 	private String[] arguments;
 	private int index;
-	private boolean twoCommands;
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 	private static final String LINE_FEED = "\n";
 	private static final String RETURN = "\r";
+	private static Logger logger = Logger.getRootLogger();
 
 	//TODO implement 0 parameters (and change name of 'key' and 'value'). Connect and disconnect related messages
 	public KVQuery(byte[] bytes) throws InvalidMessage {
-		String arguments;
+		String message;
 
 		//TODO put this in a better place. In the main() 
 		System.setProperty("file.encoding", "US-ASCII");
 
 		index = 0;
-		this.twoCommands = false;
 
-		arguments = new String(bytes);
-		this.arguments = arguments.split("\n");
+		message = new String(bytes);
+		arguments = message.split("\n");
 
-		if (this.arguments.length > 0 && this.arguments[this.arguments.length - 1].equals(RETURN)) {
-			setType(this.arguments[index++]);
+		if (arguments.length >= 2 && arguments.length <= 4
+				&& arguments[arguments.length - 1].equals(RETURN)) {
+			setType(arguments[index++]);
 
-			if (this.command.equals(StatusType.PUT) ||
-					this.command.equals(StatusType.PUT_SUCCESS) ||
-					this.command.equals(StatusType.PUT_UPDATE)  ||
-					this.command.equals(StatusType.PUT_ERROR)) {
-				this.twoCommands = true;
-			}
-
-			if (twoCommands) {
-				if (this.arguments.length != 4) {
-					this.command = StatusType.ERROR;
-				}
-				this.key = this.arguments[index++];
-				this.value = this.arguments[index++];
+			if (arguments.length == 4) {
+				key = arguments[index++];
+				value = arguments[index++];
+			} else if (arguments.length == 3) {
+				key = arguments[index++];
+				value = null;
 			} else {
-				if (this.arguments.length != 3) {
-					this.command = StatusType.ERROR;
-				}
-				this.key = this.arguments[index++];
-				this.value = null;
+				key = null;
+				value = null;
 			}
 		} else {
-			this.command = StatusType.ERROR;
+			command = StatusType.ERROR;
 		}
 	}
 	
-	public KVQuery(StatusType command, String argument) {
+	/**
+	 * Constructs an query with only one argument.
+	 * @param command the type of the query
+	 * @param argument  may contain the key (key-value) of the query or the message from a connection. Depends on the command. 
+	 * @throws InvalidMessage thrown when a command that is not associated with exactly one argument is entered
+	 */
+	public KVQuery(StatusType command, String argument) throws InvalidMessage {
+		if (command != StatusType.GET && command != StatusType.CONNECT)
 		this.command = command;
 		this.key = argument;
-		this.twoCommands = false;
 	}
 	
-	public KVQuery(StatusType command, String argument1, String argument2) {
+	/**
+	 * Constructs an query with a key and value.
+	 * @param command the type of the query
+	 * @param key the key (key-value) of the query
+	 * @param value the value (key-value) of the query
+	 * @throws InvalidMessage thrown when a command associated with less than two arguments is entered
+	 */
+	public KVQuery(StatusType command, String key, String value) throws InvalidMessage {
+		if (command != StatusType.GET_ERROR				&& command != StatusType.GET_SUCCESS
+				&& command != StatusType.PUT			&& command != StatusType.PUT_SUCCESS
+				&& command != StatusType.PUT_UPDATE		&& command != StatusType.PUT_ERROR
+				&& command != StatusType.DELETE_SUCCESS && command != StatusType.DELETE_ERROR)
 		this.command = command;
-		this.key = argument1;
-		this.value = argument2;
-		this.twoCommands = false;
+		this.key = key;
+		this.value = value;
 	}
+	
+	/**
+	 * Transform the query to an array of bytes to be sent to a client or server.
+	 * Marshalling method.
+	 * 
+	 * @return an array of bytes with the query ready to be sent. Returns null if an error occurs with the buffer.
+	 */
+	public byte[] toBytes() {
+		ByteBuffer byteBuffer = null;
+		try {
+			byteBuffer = ByteBuffer.allocate(DROP_SIZE);
 
-	//TODO handle the Exception, instead of throwing it
-	public byte[] toBytes() throws UnsupportedEncodingException {
-		ByteBuffer byteBuffer = ByteBuffer.allocate(DROP_SIZE);
-
-		byteBuffer.put(command.toString().getBytes());
-		byteBuffer.put(LINE_FEED.getBytes());
-		//bytes.putInt(length1);
-		byteBuffer.put(key.getBytes());
-		byteBuffer.put(LINE_FEED.getBytes());
-		if (twoCommands) {
-			//bytes.putInt(length2);
+			byteBuffer.put(command.toString().getBytes());
 			byteBuffer.put(LINE_FEED.getBytes());
-			byteBuffer.put(value.getBytes());
+	
+			if (arguments.length >= 3)
+			byteBuffer.put(key.getBytes());
+			byteBuffer.put(LINE_FEED.getBytes());
+			
+			if (arguments.length == 4) {
+				byteBuffer.put(value.getBytes());
+				byteBuffer.put(LINE_FEED.getBytes());
+			}
+			
+			byteBuffer.put(RETURN.getBytes());
+		} catch (BufferOverflowException ex) {
+			logger.error("Error! Unable to marshal the message. Buffer full. \n", ex);
 		}
-		byteBuffer.put(LINE_FEED.getBytes());
-		byteBuffer.put(RETURN.getBytes());
-
+		
 		return byteBuffer.array();
 	}
 	
@@ -138,6 +163,21 @@ public class KVQuery {
 			break;
 		case "DE":
 			this.command = StatusType.DELETE_ERROR;
+			break;
+		case "CN":
+			this.command = StatusType.CONNECT;
+			break;
+		case "CS":
+			this.command = StatusType.CONNECT_SUCCESS;
+			break;
+		case "CE":
+			this.command = StatusType.CONNECT_ERROR;
+			break;
+		case "DN":
+			this.command = StatusType.DISCONNECT;
+			break;
+		case "DC":
+			this.command = StatusType.DISCONNECT_SUCCES;
 			break;
 		case "EE":
 			this.command = StatusType.ERROR;
