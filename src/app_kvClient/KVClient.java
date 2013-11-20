@@ -3,6 +3,7 @@ package app_kvClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashSet;
@@ -10,8 +11,9 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import common.messages.InvalidMessage;
+import common.messages.KVMessage;
 import common.messages.KVQuery;
-
 import app_kvServer.KVData;
 /**
  * Represents a connection end point for a particular client that is 
@@ -22,16 +24,15 @@ import app_kvServer.KVData;
 public class KVClient implements Runnable {
 
 	private static Logger logger = Logger.getRootLogger();
-	
+
 	private boolean isOpen;
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 	private static KVData kvdata = new KVData();
-	private KVQuery kvQuery = new KVQuery();
 	private Socket clientSocket;
 	private InputStream input;
 	private OutputStream output;
-	
+
 	/**
 	 * Constructs a new CientConnection object for a given TCP socket.
 	 * @param clientSocket the Socket object for the client connection.
@@ -40,7 +41,7 @@ public class KVClient implements Runnable {
 		this.clientSocket = clientSocket;
 		this.isOpen = true;
 	}
-	
+
 	/**
 	 * Initializes and starts the client connection. 
 	 * Loops until the connection is closed or aborted by the client.
@@ -49,62 +50,60 @@ public class KVClient implements Runnable {
 		try {
 			output = clientSocket.getOutputStream();
 			input = clientSocket.getInputStream();
-			//call comm interface with message get bytes and call sendMessage
-			//kvQuery.
-		//	sendMessage(kvQuery.toByte(new TextMessage(
-		//			"Connection to MSRG Echo server established: " 
-		//			+ clientSocket.getLocalAddress() + " / "
-		//			+ clientSocket.getLocalPort())));
-			
+			String connectSuccess = "Connection to MSRG Echo server established: " 
+					+ clientSocket.getLocalAddress() + " / "
+					+ clientSocket.getLocalPort();
+			//need to be edited
+			KVQuery kvQueryConnect = new KVQuery(KVMessage.StatusType.GET_SUCCESS,connectSuccess );
+			sendMessage(kvQueryConnect.toBytes());
 			while(isOpen) {
 				try {
 					byte[] latestMsg = receiveMessage();
 					//pass this byte and get KVQuery
+					KVQuery kvQueryCommand = new KVQuery(latestMsg);
 					String key=null,value=null,returnValue;
-					if(kvQuery.getCommand().toString().equals("GET"))
+					if(kvQueryCommand.getCommand().toString().equals("GET"))
 					{
-						try {
-							value = kvQuery.getKey();
-							returnValue = kvdata.get(value);
+						
+							key = kvQueryCommand.getKey();
+							returnValue = kvdata.get(key);
+							KVQuery kvQueryGet = new KVQuery(KVMessage.StatusType.GET_SUCCESS,returnValue);
+							sendMessage(kvQueryGet.toBytes());
 							//comm interface form success kvmessage and convert into bytes through comm interface and send back
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							//comm interface form error message
-							logger.error("error:Not able to get value for key:"+ value);
-						}
+						
 					}
-					else if(kvQuery.getCommand().toString().equals("PUT"))
+					else if(kvQueryCommand.getCommand().toString().equals("PUT"))
 					{
-						try {
-							key = kvQuery.getKey();
-							value = kvQuery.getValue();
+						
+							key = kvQueryCommand.getKey();
+							value = kvQueryCommand.getValue();
 							returnValue = kvdata.put(key,value );
 							//comm interface form success kvmessage
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							//comm interface form error message
-							logger.error("error:Not able to put value:"+value+" for key:"+ key);
-						}
+							KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,returnValue);
+							sendMessage(kvQueryPut.toBytes());
+						
 					}
 					else
 					{
 						//comm interface unknown command error
+						sendError(KVMessage.StatusType.ERROR,"Invalid command");
 					}
 					//sendMessage(latestMsg);
-					
-				/* connection either terminated by the client or lost due to 
-				 * network problems*/	
+
+					/* connection either terminated by the client or lost due to 
+					 * network problems*/	
 				} catch (IOException ioe) {
 					logger.error("Error! Connection lost!");
 					isOpen = false;
-				}				
+				}
+				
 			}
-			
+
 		} catch (IOException ioe) {
 			logger.error("Error! Connection could not be established!", ioe);
-			
+
 		} finally {
-			
+
 			try {
 				if (clientSocket != null) {
 					input.close();
@@ -116,7 +115,13 @@ public class KVClient implements Runnable {
 			}
 		}
 	}
-	
+
+	private void sendError(KVMessage.StatusType statusType, String errorMsg) throws UnsupportedEncodingException, IOException {
+		// TODO Auto-generated method stub
+		KVQuery kvQueryError = new KVQuery(statusType,errorMsg);
+		sendMessage(kvQueryError.toBytes());
+	}
+
 	/**
 	 * Method sends a TextMessage using this socket.
 	 * @param msg the message that is to be sent.
@@ -129,19 +134,19 @@ public class KVClient implements Runnable {
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
 				+ clientSocket.getPort() + ">: '" 
 				+ new String(msgBytes) +"'");
-    }
-	
-	
+	}
+
+
 	private byte[] receiveMessage() throws IOException {
-		
+
 		int index = 0;
 		byte[] msgBytes = null, tmp = null;
 		byte[] bufferBytes = new byte[BUFFER_SIZE];
-		
+
 		/* read first char from stream */
 		byte read = (byte) input.read();	
 		boolean reading = true;
-		
+
 		while(read != 13 && reading) {/* carriage return */
 			/* if buffer filled, copy to msg array */
 			if(index == BUFFER_SIZE) {
@@ -159,20 +164,20 @@ public class KVClient implements Runnable {
 				bufferBytes = new byte[BUFFER_SIZE];
 				index = 0;
 			} 
-			
+
 			/* only read valid characters, i.e. letters and constants */
 			bufferBytes[index] = read;
 			index++;
-			
+
 			/* stop reading is DROP_SIZE is reached */
 			if(msgBytes != null && msgBytes.length + index >= DROP_SIZE) {
 				reading = false;
 			}
-			
+
 			/* read next char from stream */
 			read = (byte) input.read();
 		}
-		
+
 		if(msgBytes == null){
 			tmp = new byte[index];
 			System.arraycopy(bufferBytes, 0, tmp, 0, index);
@@ -181,18 +186,18 @@ public class KVClient implements Runnable {
 			System.arraycopy(msgBytes, 0, tmp, 0, msgBytes.length);
 			System.arraycopy(bufferBytes, 0, tmp, msgBytes.length, index);
 		}
-		
+
 		msgBytes = tmp;
-		
+
 		/* build final String */
-		
+
 		logger.info("RECEIVE \t<" 
 				+ clientSocket.getInetAddress().getHostAddress() + ":" 
 				+ clientSocket.getPort() + ">: '" 
 				+ new String(msgBytes) + "'");
 		return msgBytes;
-    }
-	
+	}
 
-	
+
+
 }
