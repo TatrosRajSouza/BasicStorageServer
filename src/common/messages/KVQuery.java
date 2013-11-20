@@ -31,13 +31,13 @@ public class KVQuery {
 	/**
 	 * Construct a query from a message received in the form of an array of bytes
 	 * @param bytes
-	 * @throws InvalidMessage
+	 * @throws InvalidMessageException
 	 */
-	public KVQuery(byte[] bytes) throws InvalidMessage {
+	public KVQuery(byte[] bytes) throws InvalidMessageException {
 		String message;
 		int index = 0;
 		//TODO put this in Client and Server main
-		System.setProperty("file.encoding", "US-ASCII");
+		//System.setProperty("file.encoding", "US-ASCII");
 
 		message = new String(bytes);
 		arguments = message.split("\n");
@@ -66,12 +66,12 @@ public class KVQuery {
 	 * Constructs an query with only one argument.
 	 * @param command the type of the query
 	 * @param argument  may contain the key (key-value) of the query or the message from a connection. Depends on the command. 
-	 * @throws InvalidMessage thrown when a command that is not associated with exactly one argument is entered
+	 * @throws InvalidMessageException thrown when a command that is not associated with exactly one argument is entered
 	 */
-	public KVQuery(StatusType command, String argument) throws InvalidMessage {
+	public KVQuery(StatusType command, String argument) throws InvalidMessageException {
 		if (command != StatusType.GET && command != StatusType.GET_ERROR
 				&& command != StatusType.CONNECT && command != StatusType.FAILED)
-			throw new InvalidMessage();
+			throw new InvalidMessageException();
 		this.command = command;
 		this.key = argument;
 	}
@@ -81,14 +81,14 @@ public class KVQuery {
 	 * @param command the type of the query
 	 * @param key the key (key-value) of the query
 	 * @param value the value (key-value) of the query
-	 * @throws InvalidMessage thrown when a command associated with less than two arguments is entered
+	 * @throws InvalidMessageException thrown when a command associated with less than two arguments is entered
 	 */
-	public KVQuery(StatusType command, String key, String value) throws InvalidMessage {
+	public KVQuery(StatusType command, String key, String value) throws InvalidMessageException {
 		if (command != StatusType.GET_SUCCESS
 				&& command != StatusType.PUT			&& command != StatusType.PUT_SUCCESS
 				&& command != StatusType.PUT_UPDATE		&& command != StatusType.PUT_ERROR
 				&& command != StatusType.DELETE_SUCCESS && command != StatusType.DELETE_ERROR) {
-			throw new InvalidMessage();
+			throw new InvalidMessageException();
 		}
 		this.command = command;
 		this.key = key;
@@ -137,12 +137,12 @@ public class KVQuery {
 	/**
 	 * Get the key of a key-value query
 	 * @return the key of a key-value query
-	 * @throws InvalidMessage if the query does not has a key
+	 * @throws InvalidMessageException if the query does not has a key
 	 */
-	public String getKey() throws InvalidMessage {
+	public String getKey() throws InvalidMessageException {
 		if (arguments.length < 3 || command.equals(StatusType.CONNECT)
 				|| arguments.equals(StatusType.FAILED)) {
-			throw new InvalidMessage();
+			throw new InvalidMessageException();
 		}
 		return this.key;
 	}
@@ -150,11 +150,11 @@ public class KVQuery {
 	/**
 	 * Get a text message from connection established or failed message sent from server
 	 * @return text message from connection established or failed message
-	 * @throws InvalidMessage if the query is not of the types CONNECT or FAILED 
+	 * @throws InvalidMessageException if the query is not of the types CONNECT or FAILED 
 	 */
-	public String getTextMessage() throws InvalidMessage {
+	public String getTextMessage() throws InvalidMessageException {
 		if (!(command.equals(StatusType.CONNECT) || command.equals(StatusType.FAILED))) {
-			throw new InvalidMessage();
+			throw new InvalidMessageException();
 		}
 		return this.key;
 	}
@@ -162,11 +162,11 @@ public class KVQuery {
 	/**
 	 * Get the value of a key-value query
 	 * @return the value of a key-value query
-	 * @throws InvalidMessage if the message does not has a value
+	 * @throws InvalidMessageException if the message does not has a value
 	 */
-	public String getValue() throws InvalidMessage {
+	public String getValue() throws InvalidMessageException {
 		if (this.value == null) {
-			throw new InvalidMessage();
+			throw new InvalidMessageException();
 		}
 		return this.value;
 	}
