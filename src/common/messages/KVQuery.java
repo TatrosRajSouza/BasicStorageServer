@@ -171,7 +171,7 @@ public class KVQuery {
 		return this.value;
 	}
 
-	private void setType(String command) {
+	private void setType(String command) throws InvalidMessageException {
 		switch (command) {
 		case "GT":
 			this.command = StatusType.GET;
@@ -218,6 +218,8 @@ public class KVQuery {
 		case "FL":
 			this.command = StatusType.FAILED;
 			break;
+		default:
+			throw new InvalidMessageException();	
 		}
 	}
 
