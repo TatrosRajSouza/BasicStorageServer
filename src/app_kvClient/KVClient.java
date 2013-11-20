@@ -54,49 +54,66 @@ public class KVClient implements Runnable {
 					+ clientSocket.getLocalAddress() + " / "
 					+ clientSocket.getLocalPort();
 			//need to be edited
-			KVQuery kvQueryConnect = new KVQuery(KVMessage.StatusType.GET_SUCCESS,connectSuccess );
-			sendMessage(kvQueryConnect.toBytes());
+			KVQuery kvQueryConnect;
+			try {
+				kvQueryConnect = new KVQuery(KVMessage.StatusType.CONNECT_SUCCESS,connectSuccess );
+				sendMessage(kvQueryConnect.toBytes());
+			} catch (InvalidMessage e) {
+				// TODO Auto-generated catch block
+				logger.error("Invalid connect message");
+			}
 			while(isOpen) {
 				try {
 					byte[] latestMsg = receiveMessage();
-					//pass this byte and get KVQuery
-					KVQuery kvQueryCommand = new KVQuery(latestMsg);
-					String key=null,value=null,returnValue;
-					if(kvQueryCommand.getCommand().toString().equals("GET"))
-					{
-						
+					KVQuery kvQueryCommand;
+					try {
+						kvQueryCommand = new KVQuery(latestMsg);
+						String key=null,value=null,returnValue;
+						if(kvQueryCommand.getCommand().toString().equals("GET"))
+						{
+
 							key = kvQueryCommand.getKey();
-							returnValue = kvdata.get(key);
-							KVQuery kvQueryGet = new KVQuery(KVMessage.StatusType.GET_SUCCESS,returnValue);
-							sendMessage(kvQueryGet.toBytes());
-							//comm interface form success kvmessage and convert into bytes through comm interface and send back
-						
-					}
-					else if(kvQueryCommand.getCommand().toString().equals("PUT"))
-					{
-						
+							try {
+								returnValue = kvdata.get(key);
+								KVQuery kvQueryGet = new KVQuery(KVMessage.StatusType.GET_SUCCESS,returnValue);
+								sendMessage(kvQueryGet.toBytes());
+							} catch (Exception e) {
+								String errorMsg = "Error in get operation for the key" + key ;
+								logger.error(errorMsg);
+								sendError(KVMessage.StatusType.GET_ERROR,errorMsg);
+								
+							}
+						}
+						else if(kvQueryCommand.getCommand().toString().equals("PUT"))
+						{
+
 							key = kvQueryCommand.getKey();
 							value = kvQueryCommand.getValue();
-							returnValue = kvdata.put(key,value );
-							//comm interface form success kvmessage
-							KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,returnValue);
-							sendMessage(kvQueryPut.toBytes());
-						
+							try {
+								returnValue = kvdata.put(key,value );
+								KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,returnValue);
+								sendMessage(kvQueryPut.toBytes());
+							} catch (Exception e) {
+								String errorMsg = "Error in put operation for Key:"+key + "and value:" + value ;
+								logger.error(errorMsg);
+								sendError(KVMessage.StatusType.PUT_ERROR,errorMsg);
+							}
+						}
+						else
+						{
+							
+							sendError(KVMessage.StatusType.ERROR,"Invalid command");
+						}
+					} catch (InvalidMessage e) {
+						logger.error("Invalid message received from client");	
+						sendError(KVMessage.StatusType.ERROR, "Invalid command");
 					}
-					else
-					{
-						//comm interface unknown command error
-						sendError(KVMessage.StatusType.ERROR,"Invalid command");
-					}
-					//sendMessage(latestMsg);
-
-					/* connection either terminated by the client or lost due to 
-					 * network problems*/	
+	
 				} catch (IOException ioe) {
 					logger.error("Error! Connection lost!");
 					isOpen = false;
 				}
-				
+
 			}
 
 		} catch (IOException ioe) {
@@ -118,8 +135,14 @@ public class KVClient implements Runnable {
 
 	private void sendError(KVMessage.StatusType statusType, String errorMsg) throws UnsupportedEncodingException, IOException {
 		// TODO Auto-generated method stub
-		KVQuery kvQueryError = new KVQuery(statusType,errorMsg);
-		sendMessage(kvQueryError.toBytes());
+		KVQuery kvQueryError;
+		try {
+			kvQueryError = new KVQuery(statusType,errorMsg);
+			sendMessage(kvQueryError.toBytes());
+		} catch (InvalidMessage e) {
+			logger.error("Error in ErrorMessage format");
+		}
+		
 	}
 
 	/**
