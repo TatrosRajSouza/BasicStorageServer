@@ -25,20 +25,23 @@ public class KVQuery {
 	private static final String RETURN = "\r";
 	private static Logger logger = Logger.getRootLogger();
 
-	//TODO implement 0 parameters (and change name of 'key' and 'value'). Connect and disconnect related messages
+	/**
+	 * Construct a query from a message received in the form of an array of bytes
+	 * @param bytes
+	 * @throws InvalidMessage
+	 */
 	public KVQuery(byte[] bytes) throws InvalidMessage {
 		String message;
-
-		//TODO put this in a better place. In the main() 
-		System.setProperty("file.encoding", "US-ASCII");
+		//TODO put this in Client and Server main
+		//System.setProperty("file.encoding", "US-ASCII");
 
 		index = 0;
-
 		message = new String(bytes);
 		arguments = message.split("\n");
 
 		if (arguments.length >= 2 && arguments.length <= 4
-				&& arguments[arguments.length - 1].equals(RETURN)) {
+				&& arguments[arguments.length - 1].equals(RETURN)
+				&& bytes.length <= DROP_SIZE) {
 			setType(arguments[index++]);
 
 			if (arguments.length == 4) {
@@ -52,7 +55,7 @@ public class KVQuery {
 				value = null;
 			}
 		} else {
-			command = StatusType.ERROR;
+			command = StatusType.FAILED;
 		}
 	}
 	
@@ -63,7 +66,9 @@ public class KVQuery {
 	 * @throws InvalidMessage thrown when a command that is not associated with exactly one argument is entered
 	 */
 	public KVQuery(StatusType command, String argument) throws InvalidMessage {
-		if (command != StatusType.GET && command != StatusType.CONNECT)
+		if (command != StatusType.GET && command != StatusType.CONNECT
+				&& command != StatusType.FAILED)
+			throw new InvalidMessage();
 		this.command = command;
 		this.key = argument;
 	}
@@ -79,7 +84,9 @@ public class KVQuery {
 		if (command != StatusType.GET_ERROR				&& command != StatusType.GET_SUCCESS
 				&& command != StatusType.PUT			&& command != StatusType.PUT_SUCCESS
 				&& command != StatusType.PUT_UPDATE		&& command != StatusType.PUT_ERROR
-				&& command != StatusType.DELETE_SUCCESS && command != StatusType.DELETE_ERROR)
+				&& command != StatusType.DELETE_SUCCESS && command != StatusType.DELETE_ERROR) {
+			throw new InvalidMessage();
+		}
 		this.command = command;
 		this.key = key;
 		this.value = value;
@@ -116,14 +123,44 @@ public class KVQuery {
 		return byteBuffer.array();
 	}
 	
+	/**
+	 * Get the type of command the message is
+	 * @return the command of the message
+	 */
 	public StatusType getCommand() {
 		return this.command;
 	}
 
-	public String getKey() {
+	/**
+	 * Get the key of a key-value query
+	 * @return the key of a key-value query
+	 * @throws InvalidMessage if the query does not has a key
+	 */
+	public String getKey() throws InvalidMessage {
+		if (arguments.length < 3 || command.equals(StatusType.CONNECT)
+				|| arguments.equals(StatusType.FAILED)) {
+			throw new InvalidMessage();
+		}
 		return this.key;
 	}
 
+	/**
+	 * Get a text message from connection established or failed message sent from server
+	 * @return text message from connection established or failed message
+	 * @throws InvalidMessage if the query is not of the types CONNECT or FAILED 
+	 */
+	public String getTextMessage() throws InvalidMessage {
+		if (!(command.equals(StatusType.CONNECT) || command.equals(StatusType.FAILED))) {
+			throw new InvalidMessage();
+		}
+		return this.key;
+	}
+	
+	/**
+	 * Get the value of a key-value query
+	 * @return the value of a key-value query
+	 * @throws InvalidMessage if the message does not has a value
+	 */
 	public String getValue() throws InvalidMessage {
 		if (this.value == null) {
 			throw new InvalidMessage();
@@ -175,8 +212,8 @@ public class KVQuery {
 		case "DC":
 			this.command = StatusType.DISCONNECT_SUCCES;
 			break;
-		case "EE":
-			this.command = StatusType.ERROR;
+		case "FL":
+			this.command = StatusType.FAILED;
 			break;
 		}
 	}
