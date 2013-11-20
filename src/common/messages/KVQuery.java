@@ -52,7 +52,7 @@ public class KVQuery {
 				value = null;
 			}
 		} else {
-			command = StatusType.ERROR;
+			command = StatusType.FAILED;
 		}
 	}
 	
@@ -180,7 +180,7 @@ public class KVQuery {
 			this.command = StatusType.DISCONNECT_SUCCES;
 			break;
 		case "EE":
-			this.command = StatusType.ERROR;
+			this.command = StatusType.FAILED;
 			break;
 		}
 	}

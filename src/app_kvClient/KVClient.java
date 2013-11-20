@@ -75,8 +75,17 @@ public class KVClient implements Runnable {
 							key = kvQueryCommand.getKey();
 							try {
 								returnValue = kvdata.get(key);
+								if(returnValue != null)
+								{
 								KVQuery kvQueryGet = new KVQuery(KVMessage.StatusType.GET_SUCCESS,returnValue);
 								sendMessage(kvQueryGet.toBytes());
+							}
+								else
+								{
+									String errorMsg = "Error in get operation for the key/Key is not present" + key ;
+									logger.error(errorMsg);
+									sendError(KVMessage.StatusType.GET_ERROR,errorMsg);
+								}
 							} catch (Exception e) {
 								String errorMsg = "Error in get operation for the key" + key ;
 								logger.error(errorMsg);
@@ -91,8 +100,17 @@ public class KVClient implements Runnable {
 							value = kvQueryCommand.getValue();
 							try {
 								returnValue = kvdata.put(key,value );
-								KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,returnValue);
+								if(returnValue != null)
+								{
+								KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,key,returnValue);
 								sendMessage(kvQueryPut.toBytes());
+								}
+								else
+								{
+									String errorMsg = "Error in put operation for Key:"+key + "and value:" + value ;
+									logger.error(errorMsg);
+									sendError(KVMessage.StatusType.PUT_ERROR,errorMsg);
+								}
 							} catch (Exception e) {
 								String errorMsg = "Error in put operation for Key:"+key + "and value:" + value ;
 								logger.error(errorMsg);
@@ -102,11 +120,11 @@ public class KVClient implements Runnable {
 						else
 						{
 							
-							sendError(KVMessage.StatusType.ERROR,"Invalid command");
+							sendError(KVMessage.StatusType.FAILED,"Invalid command");
 						}
 					} catch (InvalidMessage e) {
 						logger.error("Invalid message received from client");	
-						sendError(KVMessage.StatusType.ERROR, "Invalid command");
+						sendError(KVMessage.StatusType.FAILED, "Invalid command");
 					}
 	
 				} catch (IOException ioe) {
