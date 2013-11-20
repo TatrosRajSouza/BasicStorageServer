@@ -1,0 +1,26 @@
+This file shows how the protocol used in this application works.
+
+Enumerator used to represent the command being issued associated with the arguments
+it receive and who sends this type of command.
+public enum StatusType {
+	GET 			<key>				- Client
+	GET_ERROR 		<key> 				- Server
+	GET_SUCCESS		<key, value>		- Server
+	PUT 			<key, value>		- Client
+	PUT_SUCCESS		<key, value>		- Server
+	PUT_UPDATE		<key, value>		- Server
+	PUT_ERROR 		<key, value>		- Server
+	DELETE_SUCCESS 	<key, value>		- Server
+	DELETE_ERROR 	<key, value>		- Server
+	CONNECT								- Client
+	CONNECT_SUCCESS <message>			- Server
+	CONNECT_ERROR						- Server
+	DISCONNECT							- Client
+	DISCONNECT_SUCCES					- Server
+	FAILED 			<message>			- Server
+}
+
+Structure of the message being sent from server to client (in bytes)
+Parts in square brackets [] are optional
+
+command '\n' [argument1 '\n' [argument2 '\n']] '\r'  
