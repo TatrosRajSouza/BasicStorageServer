@@ -58,7 +58,8 @@ public class KVQuery {
 				value = null;
 			}
 		} else {
-			command = StatusType.FAILED;
+			throw new InvalidMessageException("Incorrect number of arguments or size of message too big "
+					+ "or message not finishing with \"\\r\\n\"");
 		}
 	}
 	
@@ -71,7 +72,7 @@ public class KVQuery {
 	public KVQuery(StatusType command, String argument) throws InvalidMessageException {
 		if (command != StatusType.GET && command != StatusType.GET_ERROR
 				&& command != StatusType.CONNECT && command != StatusType.FAILED)
-			throw new InvalidMessageException();
+			throw new InvalidMessageException("Incorrect number of arguments for the command");
 		this.command = command;
 		this.key = argument;
 	}
@@ -88,7 +89,7 @@ public class KVQuery {
 				&& command != StatusType.PUT			&& command != StatusType.PUT_SUCCESS
 				&& command != StatusType.PUT_UPDATE		&& command != StatusType.PUT_ERROR
 				&& command != StatusType.DELETE_SUCCESS && command != StatusType.DELETE_ERROR) {
-			throw new InvalidMessageException();
+			throw new InvalidMessageException("Incorrect number of arguments for the command.");
 		}
 		this.command = command;
 		this.key = key;
@@ -142,7 +143,7 @@ public class KVQuery {
 	public String getKey() throws InvalidMessageException {
 		if (arguments.length < 3 || command.equals(StatusType.CONNECT)
 				|| arguments.equals(StatusType.FAILED)) {
-			throw new InvalidMessageException();
+			throw new InvalidMessageException("This command doesn't have a key. " + command.toString());
 		}
 		return this.key;
 	}
@@ -154,7 +155,7 @@ public class KVQuery {
 	 */
 	public String getTextMessage() throws InvalidMessageException {
 		if (!(command.equals(StatusType.CONNECT) || command.equals(StatusType.FAILED))) {
-			throw new InvalidMessageException();
+			throw new InvalidMessageException("This command doesn't have a text message. " + command.toString());
 		}
 		return this.key;
 	}
@@ -166,7 +167,7 @@ public class KVQuery {
 	 */
 	public String getValue() throws InvalidMessageException {
 		if (this.value == null) {
-			throw new InvalidMessageException();
+			throw new InvalidMessageException("This command doesn't have a value. " + command.toString());
 		}
 		return this.value;
 	}
@@ -219,7 +220,7 @@ public class KVQuery {
 			this.command = StatusType.FAILED;
 			break;
 		default:
-			throw new InvalidMessageException();	
+			throw new InvalidMessageException("This code does not represent a command.");	
 		}
 	}
 
