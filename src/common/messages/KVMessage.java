@@ -3,16 +3,21 @@ package common.messages;
 public interface KVMessage {
 	
 	public enum StatusType {
-		GET, 			/* Get - request */
-		GET_ERROR, 		/* requested tuple (i.e. value) not found */
-		GET_SUCCESS, 	/* requested tuple (i.e. value) found */
-		PUT, 			/* Put - request */
-		PUT_SUCCESS, 	/* Put - request successful, tuple inserted */
-		PUT_UPDATE, 	/* Put - request successful, i.e. value updated */
-		PUT_ERROR, 		/* Put - request not successful */
-		DELETE_SUCCESS, /* Delete - request successful */
-		DELETE_ERROR, 	/* Delete - request successful */
-		ERROR			/* Error - unknown command */
+		GET, 				/* Get - request */
+		GET_ERROR, 			/* requested tuple (i.e. value) not found */
+		GET_SUCCESS, 		/* requested tuple (i.e. value) found */
+		PUT, 				/* Put - request */
+		PUT_SUCCESS,	 	/* Put - request successful, tuple inserted */
+		PUT_UPDATE, 		/* Put - request successful, i.e. value updated */
+		PUT_ERROR, 			/* Put - request not successful */
+		DELETE_SUCCESS, 	/* Delete - request successful */
+		DELETE_ERROR, 		/* Delete - request not successful */
+		CONNECT,			/* Connect - request */
+		CONNECT_SUCCESS,	/* Connect - request successful */
+		CONNECT_ERROR,		/* Connect - request not successful */
+		DISCONNECT,			/* Disconnect - request */
+		DISCONNECT_SUCCES,	/* Disconnect - request successful */
+		ERROR				/* Error - unknown command */
 	}
 
 	/**
