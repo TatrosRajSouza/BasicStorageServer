@@ -66,8 +66,8 @@ public class KVQuery {
 	 * @throws InvalidMessage thrown when a command that is not associated with exactly one argument is entered
 	 */
 	public KVQuery(StatusType command, String argument) throws InvalidMessage {
-		if (command != StatusType.GET && command != StatusType.CONNECT
-				&& command != StatusType.FAILED)
+		if (command != StatusType.GET && command != StatusType.GET_ERROR
+				&& command != StatusType.CONNECT && command != StatusType.FAILED)
 			throw new InvalidMessage();
 		this.command = command;
 		this.key = argument;
@@ -81,7 +81,7 @@ public class KVQuery {
 	 * @throws InvalidMessage thrown when a command associated with less than two arguments is entered
 	 */
 	public KVQuery(StatusType command, String key, String value) throws InvalidMessage {
-		if (command != StatusType.GET_ERROR				&& command != StatusType.GET_SUCCESS
+		if (command != StatusType.GET_SUCCESS
 				&& command != StatusType.PUT			&& command != StatusType.PUT_SUCCESS
 				&& command != StatusType.PUT_UPDATE		&& command != StatusType.PUT_ERROR
 				&& command != StatusType.DELETE_SUCCESS && command != StatusType.DELETE_ERROR) {
