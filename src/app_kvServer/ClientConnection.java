@@ -65,23 +65,22 @@ public class ClientConnection implements Runnable {
 					KVQuery kvQueryCommand;
 					try {
 						kvQueryCommand = new KVQuery(latestMsg);
-						String key=null,value=null,returnValue;
+						String key=null,value=null,returnValue=null;
 						String command = kvQueryCommand.getCommand().toString();
 						logger.debug("Received Command is: " + command);
-						
+
 						if(command.equals("GET"))	{
 							System.out.println("trying to get key");
 							key = kvQueryCommand.getKey();
 							System.out.println("Key is: " + kvQueryCommand.getKey());
-							try {
-								
+							
 
 								logger.debug("Num keys in map: " + kvdata.dataStore.size());
 								for (String k : kvdata.dataStore.keySet())
 								{
 									logger.debug("Key: " + k);
 								}
-								
+
 								returnValue = kvdata.get(key);
 								logger.debug("returnValue: " + returnValue);
 								if(returnValue != null) {
@@ -94,46 +93,53 @@ public class ClientConnection implements Runnable {
 									logger.error(errorMsg);
 									sendError(KVMessage.StatusType.GET_ERROR,errorMsg);
 								}
-							} catch (Exception e) {
-								String errorMsg = "Error in get operation for the key " + key ;
-								logger.error(errorMsg);
-								sendError(KVMessage.StatusType.GET_ERROR,errorMsg);
-								
-							}
+							
 						}
 						else if(command.equals("PUT"))
 						{
 							key = kvQueryCommand.getKey();
 							value = kvQueryCommand.getValue();
-							try {
-								returnValue = kvdata.put(key,value );
-								if(returnValue != null)
+							
+								returnValue = kvdata.put(key,value);
+								if(value != null )
 								{
-								KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,key,returnValue);
-								sendMessage(kvQueryPut.toBytes());
+									if(returnValue == null)
+									{
+										KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,key,returnValue);
+										sendMessage(kvQueryPut.toBytes());
+									}
+									else if(returnValue == value)
+									{
+										KVQuery kvQueryUpdate = new KVQuery(KVMessage.StatusType.PUT_UPDATE,value);
+										sendMessage(kvQueryUpdate.toBytes());
+									}
+									else
+									{
+										String errorMsg = "Error in put operation for Key:"+key + "and value:" + value ;
+										logger.error(errorMsg);
+										sendError(KVMessage.StatusType.PUT_ERROR,errorMsg);
+									}
+								}
+
+								if(value == null && returnValue != null)
+								{
+									KVQuery kvQueryDelete = new KVQuery(KVMessage.StatusType.DELETE_SUCCESS);
+									sendMessage(kvQueryDelete.toBytes());
 								}
 								else
 								{
-									String errorMsg = "Error in put operation for Key:"+key + "and value:" + value ;
+									String errorMsg = "Error in Delete operation for Key:"+key  ;
 									logger.error(errorMsg);
-									sendError(KVMessage.StatusType.PUT_ERROR,errorMsg);
+									sendError(KVMessage.StatusType.DELETE_ERROR,errorMsg);
 								}
-							} catch (Exception e) {
-								String errorMsg = "Error in put operation for Key:"+key + "and value:" + value ;
-								logger.error(errorMsg);
-								sendError(KVMessage.StatusType.PUT_ERROR,errorMsg);
+
 							}
-						}
-						else
-						{
 							
-							sendError(KVMessage.StatusType.FAILED,"Invalid command");
-						}
 					} catch (InvalidMessageException e) {
 						logger.error("Invalid message received from client");	
 						sendError(KVMessage.StatusType.FAILED, "Invalid command");
 					}
-	
+
 				} catch (IOException ioe) {
 					logger.error("Error! Connection lost!");
 					isOpen = false;
@@ -158,6 +164,19 @@ public class ClientConnection implements Runnable {
 		}
 	}
 
+	private void checkFailType(String returnValue, String key, String value) throws UnsupportedEncodingException, IOException {
+		// TODO Auto-generated method stub
+		if(returnValue == "deletefail")
+		{
+
+		}
+		else
+		{
+
+		}
+
+	}
+
 	private void sendError(KVMessage.StatusType statusType, String errorMsg) throws UnsupportedEncodingException, IOException {
 		KVQuery kvQueryError;
 		try {
@@ -166,7 +185,7 @@ public class ClientConnection implements Runnable {
 		} catch (InvalidMessageException e) {
 			logger.error("Error in ErrorMessage format");
 		}
-		
+
 	}
 
 	/**
