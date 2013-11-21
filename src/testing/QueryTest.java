@@ -255,4 +255,21 @@ public class QueryTest extends TestCase{
 		assertNull(ex);
 		assertTrue(Arrays.equals(bytes, "CONNECT\n\r".getBytes()));
 	}
+	
+	@Test
+	public void testToBytesTwoArgumentSucces() {
+		KVQuery kvQuery = null;
+		byte[] bytes = null;
+		Exception ex = null;
+
+		try {
+			kvQuery = new KVQuery(StatusType.PUT, "foo", "bar");
+		} catch (InvalidMessageException e) {
+			ex = e;
+		}
+		bytes = kvQuery.toBytes();
+		
+		assertNull(ex);
+		assertTrue(Arrays.equals(bytes, "PUT\nfoo\nbar\n\r".getBytes()));
+	}
 }
