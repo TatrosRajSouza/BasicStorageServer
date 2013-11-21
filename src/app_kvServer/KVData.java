@@ -5,14 +5,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class KVData {
-	private ConcurrentHashMap<String, String> dataStore = new ConcurrentHashMap<String, String>();
+	public ConcurrentHashMap<String, String> dataStore = new ConcurrentHashMap<String, String>();
 	public KVData()
 	{
 
 	}
 
 	public String put(String key, String value) throws Exception {
-		// TODO Auto-generated method stub
 		String returnValue = null;
 		if(value!= null)
 		{

@@ -4,21 +4,9 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-
-
-
-
-
 import logger.LogSetup;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
-
-
-
-
 
 public class KVServer extends Thread {
 
@@ -162,7 +150,7 @@ public class KVServer extends Thread {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
 			System.setProperty("file.encoding", "US-ASCII");
-			int port = 50000;
+			int port = 50001;
 			new KVServer(port).start();
 
 		} catch (IOException e) {

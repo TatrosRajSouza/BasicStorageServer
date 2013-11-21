@@ -1,0 +1,23 @@
+Okay now about my client implementation:
+- There are two basic modules: The client and the KVStore library.
+- The client (package: app_kvClient) is the client application. 
+	-- KVClient has the main entry point for the application.
+	-- Methods are: connect <address> <port>, disconnect, put <A> <B> and get <A>, where {A,B} are Strings.
+	-- it holds a reference to the kvStore (the kv library) and the connection (communication logic)
+	-- furthermore it creates the Shell and displays it to the user
+	-- There are most likely a lot of things that need to be handled better, regarding the user input,
+	   since I had to debug & rewrite large parts of KVQuery.
+	-- However, the program has basic functionality now. You can connect 127.0.0.1 50001, assuming you start the
+	   server at port 50001 first. Then you will see that the CONNECT_SUCCESS message is exchanged. After that you can
+	   use put <A> <B>, where {A,B} are strings. Again the appropriate messages are exchanged. Then use get <A> and it
+	   will retrieve <B> from the server. What doesn't work so far is Updating or deleting values. (There seems to be no
+	   update functionality in the server, yet?). Also the Connect and especially the disconnect protocol is not 
+	   fully implemented. Since the storage server is not sending those messages, I cannot expect them / wait 
+	   for them in the client.
+	
+- The KVStore library (package: client):
+	-- has one class for communication logic (KVCommunication) and one class for the Key-Value store operations (KVStore)
+	-- The KVStore uses the KVQuery library to generate Queries, which are then sent to the server using 
+	   the Communication Logic (KVCommunication). Generally it then waits for a response from the server.
+	   When it receives that response it generates a KVQuery from the byte[] response, again using KVQuery.
+	-- KVResult implements the KVMessage interface, which is used to pass message results

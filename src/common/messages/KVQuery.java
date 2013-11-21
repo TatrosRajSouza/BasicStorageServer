@@ -1,8 +1,5 @@
 package common.messages;
 
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
-
 import org.apache.log4j.Logger;
 
 import common.messages.KVMessage.StatusType;
@@ -17,14 +14,12 @@ public class KVQuery {
 	private StatusType command;
 	private String key;
 	private String value;
+	private int numArgs;
 	
 	private String[] arguments;
 	
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
-	
-	private static final String LINE_FEED = "\n";
-	private static final String RETURN = "\r";
 	
 	private static Logger logger = Logger.getRootLogger();
 
@@ -35,32 +30,63 @@ public class KVQuery {
 	 */
 	public KVQuery(byte[] bytes) throws InvalidMessageException {
 		String message;
-		int index = 0;
 		//TODO put this in Client and Server main
 		//System.setProperty("file.encoding", "US-ASCII");
 
+		/* Note: Converting the Bytes back to strings didn't work,
+		 * since it would always fail at reading the carriage return (\r).
+		 * Somehow the carriage return gets lost somewhere during the conversion process, 
+		 * I'm not 100% sure where it happens.
+		 * 
+		 * As the carriage return is missing it would always drop to the else case 
+		 * and throw an invalid message exception. This should have been obvious while testing the code.
+		 * 
+		 * I removed the carriage return convention, as I don't see its use anyway.
+		 * The format is now simply <Command>\n [<Argument 1>\n...<Argument n>]
+		 */
+		
 		message = new String(bytes);
 		arguments = message.split("\n");
 
-		if (arguments.length >= 2 && arguments.length <= 4
-				&& arguments[arguments.length - 1].equals(RETURN)
-				&& bytes.length <= DROP_SIZE) {
-			setType(arguments[index++]);
+		/* Note: What about messages of length 2? e.g. Command + Message such as CONNECT_SUCCESS <MSG>. Not handled.
+		 * Changed the argument checking.
+		 */
+		
+		if (arguments.length >= 1 && arguments.length <= 3 && bytes.length <= DROP_SIZE) {
+			setType(arguments[0]);
 
-			if (arguments.length == 4) {
-				key = arguments[index++];
-				value = arguments[index++];
+			if (arguments.length == 1) {
+				key = "";
+				value = "";
+			} else if (arguments.length == 2) {
+				key = arguments[1];
+				value = "";
 			} else if (arguments.length == 3) {
-				key = arguments[index++];
-				value = null;
-			} else {
-				key = null;
-				value = null;
+				key = arguments[1];
+				value = arguments[2];
 			}
 		} else {
-			throw new InvalidMessageException("Incorrect number of arguments or size of message too big "
-					+ "or message not finishing with \"\\r\\n\"");
+			throw new InvalidMessageException("Incorrect number of arguments or size of message exceeded.");
 		}
+	}
+	
+	/**
+	 * Constructs an query that consists only of a command.
+	 * @param command the type of the query
+	 * @throws InvalidMessageException thrown when a command that is not associated with exactly one argument is entered
+	 */
+	public KVQuery(StatusType command) throws InvalidMessageException {
+		if (command != StatusType.CONNECT && command != StatusType.CONNECT_ERROR
+				&& command != StatusType.DISCONNECT)
+			throw new InvalidMessageException("Incorrect number of arguments or unknown command.");
+		
+		/* Note: I don't understand why there is no Constructor for KVQueries that have no arguments, only the command.
+		 * Since this type of message is clearly specified in your protocol (e.g. CONNECT and DISCONNECT).
+		 * So I added this.
+		 */
+		
+		this.command = command;
+		this.numArgs = 1;
 	}
 	
 	/**
@@ -70,11 +96,18 @@ public class KVQuery {
 	 * @throws InvalidMessageException thrown when a command that is not associated with exactly one argument is entered
 	 */
 	public KVQuery(StatusType command, String argument) throws InvalidMessageException {
-		if (command != StatusType.GET && command != StatusType.GET_ERROR
-				&& command != StatusType.CONNECT && command != StatusType.FAILED)
+		if (command != StatusType.GET && command != StatusType.GET_ERROR && command != StatusType.GET_SUCCESS
+				&& command != StatusType.FAILED && command != StatusType.CONNECT_SUCCESS)
 			throw new InvalidMessageException("Incorrect number of arguments for the command");
+		
+		/* Note: This was missing CONNECT_SUCCESS and GET_SUCCESS message since it is 
+		 * specified in protocol as 2 argument Type Command.
+		 * Furthermore the CONNECT message is a Command without arguments so I removed it. 
+		 */
+		
 		this.command = command;
 		this.key = argument;
+		this.numArgs = 2;
 	}
 	
 	/**
@@ -94,6 +127,7 @@ public class KVQuery {
 		this.command = command;
 		this.key = key;
 		this.value = value;
+		this.numArgs = 3;
 	}
 	
 	/**
@@ -103,28 +137,42 @@ public class KVQuery {
 	 * @return an array of bytes with the query ready to be sent. Returns null if an error occurs with the buffer.
 	 */
 	public byte[] toBytes() {
-		ByteBuffer byteBuffer = null;
-		try {
-			byteBuffer = ByteBuffer.allocate(DROP_SIZE);
-
-			byteBuffer.put(command.toString().getBytes());
-			byteBuffer.put(LINE_FEED.getBytes());
-	
-			if (arguments.length >= 3)
-			byteBuffer.put(key.getBytes());
-			byteBuffer.put(LINE_FEED.getBytes());
-			
-			if (arguments.length == 4) {
-				byteBuffer.put(value.getBytes());
-				byteBuffer.put(LINE_FEED.getBytes());
-			}
-			
-			byteBuffer.put(RETURN.getBytes());
-		} catch (BufferOverflowException ex) {
-			logger.error("Error! Unable to marshal the message. Buffer full. \n", ex);
+		/* Note: This was completely broken. Would throw NullReferenceExceptions every single time, since arguments[] 
+		 * array was not even initialized at this point as it isn't even used for the creation of KVQuery Objects.
+		 * Only command, key and value are used.  
+		 */
+		
+		/* logger.info("Command is: " + command.toString()
+				+ "\nKey is: " + key
+				+ "\nValue is: " + value);
+		*/
+		
+		byte[] bytes;
+		if (numArgs == 1) {
+			String message = command.toString() + "\r";
+			// logger.debug("converting to bytes: " + command.toString());
+			bytes = message.getBytes();
+		} else if (numArgs == 2) {
+			String message = command.toString() + "\n" + key + "\r";
+			// logger.debug("converting to bytes: " + command.toString() + "\n" + key);
+			bytes = message.getBytes();
+		} else if (numArgs == 3) {
+			String message = command.toString() + "\n" + key + "\n" + value + "\r";
+			// logger.debug("converting to bytes: " + command.toString() + "\n" + key + "\n" + value);
+			bytes = message.getBytes();
+		} else {
+			logger.error("Cannot convert KVQuery to bytes, since it has an incorrect number of arguments. (" + numArgs + ")");
+			return null;
 		}
 		
-		return byteBuffer.array();
+		if (bytes.length > DROP_SIZE) {
+			logger.error("Cannot convert KVQuery to bytes, since the payload would be too large.\n"
+					+ "  Payload: " + bytes.length / 1024 + " kb"
+					+ "  Maxmium allowed: " + DROP_SIZE / 1024 + " kb");
+			return null;
+		}
+		
+		return bytes;
 	}
 	
 	/**
@@ -141,10 +189,6 @@ public class KVQuery {
 	 * @throws InvalidMessageException if the query does not has a key
 	 */
 	public String getKey() throws InvalidMessageException {
-		if (arguments.length < 3 || command.equals(StatusType.CONNECT)
-				|| arguments.equals(StatusType.FAILED)) {
-			throw new InvalidMessageException("This command doesn't have a key. " + command.toString());
-		}
 		return this.key;
 	}
 
@@ -154,7 +198,8 @@ public class KVQuery {
 	 * @throws InvalidMessageException if the query is not of the types CONNECT or FAILED 
 	 */
 	public String getTextMessage() throws InvalidMessageException {
-		if (!(command.equals(StatusType.CONNECT) || command.equals(StatusType.FAILED))) {
+		/* Note: Again you confused CONNECT with CONNECT_SUCCESS. Changed it. */
+		if (!(command.equals(StatusType.CONNECT_SUCCESS) || command.equals(StatusType.FAILED))) {
 			throw new InvalidMessageException("This command doesn't have a text message. " + command.toString());
 		}
 		return this.key;
@@ -173,55 +218,61 @@ public class KVQuery {
 	}
 
 	private void setType(String command) throws InvalidMessageException {
+	
+		/* Note: What? What's up with the random case constants. Where are you even setting GT, GE.... and so on?
+		 * These constants are never part of any messages or appear anywhere else in the code.
+		 * I'm always dropping to the default case ("This code does not represent a command") because of that. 
+		 * I changed it to the actual commands. At least it works that way. 
+		 */
+		
 		switch (command) {
-		case "GT":
+		case "GET":
 			this.command = StatusType.GET;
 			break;
-		case "GE":
+		case "GET_ERROR":
 			this.command = StatusType.GET_ERROR;
 			break;
-		case "GS":
+		case "GET_SUCCESS":
 			this.command = StatusType.GET_SUCCESS;
 			break;
-		case "PT":
+		case "PUT":
 			this.command = StatusType.PUT;
 			break;
-		case "PS":
+		case "PUT_SUCCESS":
 			this.command = StatusType.PUT_SUCCESS;
 			break;
-		case "PU":
+		case "PUT_UPDATE":
 			this.command = StatusType.PUT_UPDATE;
 			break;
-		case "PE":
+		case "PUT_ERROR":
 			this.command = StatusType.PUT_ERROR;
 			break;
-		case "DS":
+		case "DELETE_SUCCESS":
 			this.command = StatusType.DELETE_SUCCESS;
 			break;
-		case "DE":
+		case "DELETE_ERROR":
 			this.command = StatusType.DELETE_ERROR;
 			break;
-		case "CN":
+		case "CONNECT":
 			this.command = StatusType.CONNECT;
 			break;
-		case "CS":
+		case "CONNECT_SUCCESS":
 			this.command = StatusType.CONNECT_SUCCESS;
 			break;
-		case "CE":
+		case "CONNECT_ERROR":
 			this.command = StatusType.CONNECT_ERROR;
 			break;
-		case "DN":
+		case "DISCONNECT":
 			this.command = StatusType.DISCONNECT;
 			break;
-		case "DC":
+		case "DISCONNECT_SUCCES":
 			this.command = StatusType.DISCONNECT_SUCCES;
 			break;
-		case "FL":
+		case "FAILED":
 			this.command = StatusType.FAILED;
 			break;
 		default:
 			throw new InvalidMessageException("This code does not represent a command.");	
 		}
 	}
-
 }

@@ -1,0 +1,26 @@
+To Claynon:
+I had a very hard time using your KVQuery class and I actually rewrote large parts of it since it was simply full of bugs. 
+I'm not sure if you were simply not finished with it or if you rushed the coding - there were so many issues.
+It cost me many hours to fix them, especially since they were well hidden and pretty random. 
+Please check my comments in the code.
+
+Just to name a few examples:
+- public KVQuery(byte[] bytes) didn't work, as it would not convert byte arrays 
+  back to KVQuery instances. It would _always_ fail at reading the carriage return 
+  and throw an InvalidMessageException.
+
+- There was no constructor present for single Command messages, 
+  even though you specified such messages in the protocol. (e.g. CONNECT or DISCONNECT)
+
+- The two argument Constructor for KVQuery was missing CONNECT_SUCCESS and GET_SUCCESS 
+  and for some reason had CONNECT in it, even though in the protocol file this is specified without arguments.
+
+- The toBytes() method was simply totally broken. It would throw a 
+  NullReferenceException every time since you accessed the arguments[] array, which was never initialized. 
+  Since you only updated the command, key and value variables but never the arguments array. 
+  This actually cost me a lot of time and nerves.
+
+- the setType(String command) method which is used to set the StatusType of a KVQuery instance 
+  did not feature the specified commands but instead used random 2 letter abbreviations 
+  that were not part of any messages transmitted. Therefore every time a KVQuery object was created, 
+  its StatusType could not be set and throw an InvalidMessageException instead.

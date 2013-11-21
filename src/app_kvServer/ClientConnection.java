@@ -5,14 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 
 import app_kvServer.KVData;
-import common.messages.InvalidMessageException;
 import common.messages.InvalidMessageException;
 import common.messages.KVMessage;
 import common.messages.KVQuery;
@@ -46,7 +42,7 @@ public class ClientConnection implements Runnable {
 	/**
 	 * Initializes and starts the client connection. 
 	 * Loops until the connection is closed or aborted by the client.
-	 */
+	 */ // example usage for testing: connect 127.0.0.1 50001
 	public void run() {
 		try {
 			output = clientSocket.getOutputStream();
@@ -70,33 +66,43 @@ public class ClientConnection implements Runnable {
 					try {
 						kvQueryCommand = new KVQuery(latestMsg);
 						String key=null,value=null,returnValue;
-						if(kvQueryCommand.getCommand().toString().equals("GET"))
-						{
-
+						String command = kvQueryCommand.getCommand().toString();
+						logger.debug("Received Command is: " + command);
+						
+						if(command.equals("GET"))	{
+							System.out.println("trying to get key");
 							key = kvQueryCommand.getKey();
+							System.out.println("Key is: " + kvQueryCommand.getKey());
 							try {
-								returnValue = kvdata.get(key);
-								if(returnValue != null)
+								
+
+								logger.debug("Num keys in map: " + kvdata.dataStore.size());
+								for (String k : kvdata.dataStore.keySet())
 								{
-								KVQuery kvQueryGet = new KVQuery(KVMessage.StatusType.GET_SUCCESS,returnValue);
-								sendMessage(kvQueryGet.toBytes());
-							}
+									logger.debug("Key: " + k);
+								}
+								
+								returnValue = kvdata.get(key);
+								logger.debug("returnValue: " + returnValue);
+								if(returnValue != null) {
+									KVQuery kvQueryGet = new KVQuery(KVMessage.StatusType.GET_SUCCESS, returnValue);
+									sendMessage(kvQueryGet.toBytes());
+								}
 								else
 								{
-									String errorMsg = "Error in get operation for the key/Key is not present" + key ;
+									String errorMsg = "Error in get operation for the key/Key is not present <key>: " + "<" + key + ">";
 									logger.error(errorMsg);
 									sendError(KVMessage.StatusType.GET_ERROR,errorMsg);
 								}
 							} catch (Exception e) {
-								String errorMsg = "Error in get operation for the key" + key ;
+								String errorMsg = "Error in get operation for the key " + key ;
 								logger.error(errorMsg);
 								sendError(KVMessage.StatusType.GET_ERROR,errorMsg);
 								
 							}
 						}
-						else if(kvQueryCommand.getCommand().toString().equals("PUT"))
+						else if(command.equals("PUT"))
 						{
-
 							key = kvQueryCommand.getKey();
 							value = kvQueryCommand.getValue();
 							try {
@@ -153,7 +159,6 @@ public class ClientConnection implements Runnable {
 	}
 
 	private void sendError(KVMessage.StatusType statusType, String errorMsg) throws UnsupportedEncodingException, IOException {
-		// TODO Auto-generated method stub
 		KVQuery kvQueryError;
 		try {
 			kvQueryError = new KVQuery(statusType,errorMsg);
