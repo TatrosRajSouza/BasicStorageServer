@@ -16,7 +16,7 @@ public enum StatusType {
 	CONNECT_SUCCESS <message>			- Server
 	CONNECT_ERROR						- Server
 	DISCONNECT							- Client
-	DISCONNECT_SUCCES					- Server
+	DISCONNECT_SUCCESS					- Server
 	FAILED 			<message>			- Server
 }
 

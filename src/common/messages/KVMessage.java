@@ -16,7 +16,7 @@ public interface KVMessage {
 		CONNECT_SUCCESS,	/* Connect - request successful */
 		CONNECT_ERROR,		/* Connect - request not successful */
 		DISCONNECT,			/* Disconnect - request */
-		DISCONNECT_SUCCES,	/* Disconnect - request successful */
+		DISCONNECT_SUCCESS,	/* Disconnect - request successful */
 		FAILED				/* Failed - unknown message or message too big*/
 	}
 
