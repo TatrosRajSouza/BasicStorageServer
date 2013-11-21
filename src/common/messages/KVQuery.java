@@ -1,7 +1,5 @@
 package common.messages;
 
-import java.nio.BufferOverflowException;
-
 import org.apache.log4j.Logger;
 
 import common.messages.KVMessage.StatusType;
@@ -16,12 +14,12 @@ public class KVQuery {
 	private StatusType command;
 	private String key;
 	private String value;
+	private int numArgs;
+
+	private String[] arguments;
 
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
-
-	private static final String LINE_FEED = "\n";
-	private static final String RETURN = "\r";
 
 	private static Logger logger = Logger.getRootLogger();
 
@@ -32,44 +30,40 @@ public class KVQuery {
 	 */
 	public KVQuery(byte[] bytes) throws InvalidMessageException {
 		String message;
-		String[] arguments;
-		int index = 0;
-		//TODO put this in Client and Server main
-		//System.setProperty("file.encoding", "US-ASCII");
 
 		message = new String(bytes);
 		arguments = message.split("\n");
 
-		if (arguments.length >= 2 && arguments.length <= 4
-				&& arguments[arguments.length - 1].equals(RETURN)
-				&& bytes.length <= DROP_SIZE) {
-			setType(arguments[index++]);
-			if (arguments.length == 4) {
-				key = arguments[index++];
-				value = arguments[index++];
+		if (arguments.length >= 1 && arguments.length <= 3 && bytes.length <= DROP_SIZE) {
+			setType(arguments[0]);
+
+			if (arguments.length == 1) {
+				key = "";
+				value = "";
+			} else if (arguments.length == 2) {
+				key = arguments[1];
+				value = "";
 			} else if (arguments.length == 3) {
-				key = arguments[index++];
-				value = null;
-			} else {
-				key = null;
-				value = null;
+				key = arguments[1];
+				value = arguments[2];
 			}
 		} else {
-			throw new InvalidMessageException("Incorrect number of arguments or size of message too big "
-					+ "or message not finishing with \"\\r\\n\"");
+			throw new InvalidMessageException("Incorrect number of arguments or size of message exceeded.");
 		}
 	}
 
 	/**
-	 * Constructs an query with no argument.
+	 * Constructs an query that consists only of a command.
 	 * @param command the type of the query
 	 * @throws InvalidMessageException thrown when a command that is not associated with exactly one argument is entered
 	 */
 	public KVQuery(StatusType command) throws InvalidMessageException {
 		if (command != StatusType.CONNECT && command != StatusType.CONNECT_ERROR
-				&& command != StatusType.DISCONNECT && command != StatusType.DISCONNECT_SUCCESS)
-			throw new InvalidMessageException("Incorrect number of arguments for the command");
+				&& command != StatusType.DISCONNECT)
+			throw new InvalidMessageException("Incorrect number of arguments or unknown command.");
+
 		this.command = command;
+		this.numArgs = 1;
 	}
 
 	/**
@@ -79,11 +73,13 @@ public class KVQuery {
 	 * @throws InvalidMessageException thrown when a command that is not associated with exactly one argument is entered
 	 */
 	public KVQuery(StatusType command, String argument) throws InvalidMessageException {
-		if (command != StatusType.GET && command != StatusType.GET_ERROR
-				&& command != StatusType.CONNECT_SUCCESS && command != StatusType.FAILED)
+		if (command != StatusType.GET && command != StatusType.GET_ERROR && command != StatusType.GET_SUCCESS
+				&& command != StatusType.FAILED && command != StatusType.CONNECT_SUCCESS)
 			throw new InvalidMessageException("Incorrect number of arguments for the command");
+
 		this.command = command;
 		this.key = argument;
+		this.numArgs = 2;
 	}
 
 	/**
@@ -103,6 +99,7 @@ public class KVQuery {
 		this.command = command;
 		this.key = key;
 		this.value = value;
+		this.numArgs = 3;
 	}
 
 	/**
@@ -112,24 +109,29 @@ public class KVQuery {
 	 * @return an array of bytes with the query ready to be sent. Returns null if an error occurs with the buffer.
 	 */
 	public byte[] toBytes() {
-		String message;
-		int length = getCorrectLength(command);
-
-		try {
-			message = command.toString() + LINE_FEED;
-			if (length >= 3) {
-				message += key + LINE_FEED;
-				if (length == 4) {
-					message += value + LINE_FEED;
-				}
-			}
-			message += RETURN;
-		} catch (BufferOverflowException ex) {
-			logger.error("Error! Unable to marshal the message. Buffer full. \n", ex);
+		byte[] bytes;
+		if (numArgs == 1) {
+			String message = command.toString() + "\r";
+			bytes = message.getBytes();
+		} else if (numArgs == 2) {
+			String message = command.toString() + "\n" + key + "\r";
+			bytes = message.getBytes();
+		} else if (numArgs == 3) {
+			String message = command.toString() + "\n" + key + "\n" + value + "\r";
+			bytes = message.getBytes();
+		} else {
+			logger.error("Cannot convert KVQuery to bytes, since it has an incorrect number of arguments. (" + numArgs + ")");
 			return null;
 		}
 
-		return message.getBytes();
+		if (bytes.length > DROP_SIZE) {
+			logger.error("Cannot convert KVQuery to bytes, since the payload would be too large.\n"
+					+ "  Payload: " + bytes.length / 1024 + " kb"
+					+ "  Maxmium allowed: " + DROP_SIZE / 1024 + " kb");
+			return null;
+		}
+
+		return bytes;
 	}
 
 	/**
@@ -146,10 +148,6 @@ public class KVQuery {
 	 * @throws InvalidMessageException if the query does not has a key
 	 */
 	public String getKey() throws InvalidMessageException {
-		if (command.equals(StatusType.CONNECT) || command.equals(StatusType.CONNECT_ERROR)
-				|| command.equals(StatusType.DISCONNECT) || command.equals(StatusType.DISCONNECT_SUCCESS)) {
-			throw new InvalidMessageException("This command doesn't have a key. " + command.toString());
-		}
 		return this.key;
 	}
 
@@ -159,6 +157,7 @@ public class KVQuery {
 	 * @throws InvalidMessageException if the query is not of the types CONNECT or FAILED 
 	 */
 	public String getTextMessage() throws InvalidMessageException {
+		/* Note: Again you confused CONNECT with CONNECT_SUCCESS. Changed it. */
 		if (!(command.equals(StatusType.CONNECT_SUCCESS) || command.equals(StatusType.FAILED))) {
 			throw new InvalidMessageException("This command doesn't have a text message. " + command.toString());
 		}
@@ -181,18 +180,7 @@ public class KVQuery {
 		try {
 			this.command = StatusType.valueOf(command);
 		} catch (Exception ex) {
-			throw new InvalidMessageException("This code does not represent a command.");	
+			throw new InvalidMessageException("This code does not represent a command.");        
 		}
-	}
-
-	private int getCorrectLength(StatusType command) {
-		if (command.equals(StatusType.CONNECT) || command.equals(StatusType.CONNECT_ERROR)
-				|| command.equals(StatusType.DISCONNECT) || command.equals(StatusType.DISCONNECT_SUCCESS)) {
-			return 2;
-		} else if (command.equals(StatusType.GET) || command.equals(StatusType.GET_ERROR)
-				|| command.equals(StatusType.CONNECT_SUCCESS) || command.equals(StatusType.FAILED)) {
-			return 3;
-		}
-		return 4;
 	}
 }
