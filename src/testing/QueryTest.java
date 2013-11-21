@@ -21,7 +21,7 @@ public class QueryTest extends TestCase{
 	public void testCreateNoArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "CONNECT\n\r";
+		String message = "CONNECT\r";
 		InvalidMessageException ex = null;
 		
 		bytes = message.getBytes();
@@ -39,7 +39,7 @@ public class QueryTest extends TestCase{
 	public void testCreateOneArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "GET\nfoo\n\r";
+		String message = "GET\nfoo\r";
 		InvalidMessageException ex = null;
 		
 		bytes = message.getBytes();
@@ -63,7 +63,7 @@ public class QueryTest extends TestCase{
 	public void testCreateTwoArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "PUT\nfoo\nbar\n\r";
+		String message = "PUT\nfoo\nbar\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -86,7 +86,7 @@ public class QueryTest extends TestCase{
 	@Test
 	public void testCreateQueryUnknownCommandFromByteArray() {
 		byte[] bytes;
-		String message = "as\nfoo\nbar\n\r";
+		String message = "as\nfoo\nbar\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -102,7 +102,7 @@ public class QueryTest extends TestCase{
 	@Test
 	public void testCreateQueryIncorrectSizeCommandFromByteArray() {
 		byte[] bytes;
-		String message = "as\nfoo\nbar\nasuh\n\r";
+		String message = "as\nfoo\nbar\nasuh\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -205,7 +205,7 @@ public class QueryTest extends TestCase{
 		Exception ex = null;
 		
 		try {
-			new KVQuery(StatusType.GET_SUCCESS, "foo");
+			new KVQuery(StatusType.PUT_SUCCESS, "foo");
 		} catch (InvalidMessageException e) {
 			ex = e;
 		}
@@ -253,7 +253,7 @@ public class QueryTest extends TestCase{
 		bytes = kvQuery.toBytes();
 		
 		assertNull(ex);
-		assertTrue(Arrays.equals(bytes, "CONNECT\n\r".getBytes()));
+		assertTrue(Arrays.equals(bytes, "CONNECT\r".getBytes()));
 	}
 	
 	@Test
@@ -270,6 +270,6 @@ public class QueryTest extends TestCase{
 		bytes = kvQuery.toBytes();
 		
 		assertNull(ex);
-		assertTrue(Arrays.equals(bytes, "PUT\nfoo\nbar\n\r".getBytes()));
+		assertTrue(Arrays.equals(bytes, "PUT\nfoo\nbar\r".getBytes()));
 	}
 }
