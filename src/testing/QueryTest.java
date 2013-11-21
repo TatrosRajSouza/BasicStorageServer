@@ -21,7 +21,7 @@ public class QueryTest extends TestCase{
 	public void testCreateNoArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "CN\n\r";
+		String message = "CONNECT\n\r";
 		InvalidMessageException ex = null;
 		
 		bytes = message.getBytes();
@@ -39,7 +39,7 @@ public class QueryTest extends TestCase{
 	public void testCreateOneArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "GT\nfoo\n\r";
+		String message = "GET\nfoo\n\r";
 		InvalidMessageException ex = null;
 		
 		bytes = message.getBytes();
@@ -63,7 +63,7 @@ public class QueryTest extends TestCase{
 	public void testCreateTwoArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "PT\nfoo\nbar\n\r";
+		String message = "PUT\nfoo\nbar\n\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -253,6 +253,6 @@ public class QueryTest extends TestCase{
 		bytes = kvQuery.toBytes();
 		
 		assertNull(ex);
-		assertTrue(Arrays.equals(bytes, "CN\n\r".getBytes()));
+		assertTrue(Arrays.equals(bytes, "CONNECT\n\r".getBytes()));
 	}
 }

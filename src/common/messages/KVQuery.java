@@ -43,8 +43,7 @@ public class KVQuery {
 		if (arguments.length >= 2 && arguments.length <= 4
 				&& arguments[arguments.length - 1].equals(RETURN)
 				&& bytes.length <= DROP_SIZE) {
-			setType(arguments[index++], arguments.length);
-
+			setType(arguments[index++]);
 			if (arguments.length == 4) {
 				key = arguments[index++];
 				value = arguments[index++];
@@ -117,7 +116,7 @@ public class KVQuery {
 		int length = getCorrectLength(command);
 
 		try {
-			message = getCommandCode(command) + LINE_FEED;
+			message = command.toString() + LINE_FEED;
 			if (length >= 3) {
 				message += key + LINE_FEED;
 				if (length == 4) {
@@ -178,76 +177,11 @@ public class KVQuery {
 		return this.value;
 	}
 
-	private void setType(String command, int length) throws InvalidMessageException {
-		switch (command) {
-		case "GT":
-			this.command = StatusType.GET;
-			checkLength(this.command, length);
-			break;
-		case "GE":
-			this.command = StatusType.GET_ERROR;
-			checkLength(this.command, length);
-			break;
-		case "GS":
-			this.command = StatusType.GET_SUCCESS;
-			checkLength(this.command, length);
-			break;
-		case "PT":
-			this.command = StatusType.PUT;
-			checkLength(this.command, length);
-			break;
-		case "PS":
-			this.command = StatusType.PUT_SUCCESS;
-			checkLength(this.command, length);
-			break;
-		case "PU":
-			this.command = StatusType.PUT_UPDATE;
-			checkLength(this.command, length);
-			break;
-		case "PE":
-			this.command = StatusType.PUT_ERROR;
-			checkLength(this.command, length);
-			break;
-		case "DS":
-			this.command = StatusType.DELETE_SUCCESS;
-			checkLength(this.command, length);
-			break;
-		case "DE":
-			this.command = StatusType.DELETE_ERROR;
-			checkLength(this.command, length);
-			break;
-		case "CN":
-			this.command = StatusType.CONNECT;
-			checkLength(this.command, length);
-			break;
-		case "CS":
-			this.command = StatusType.CONNECT_SUCCESS;
-			checkLength(this.command, length);
-			break;
-		case "CE":
-			this.command = StatusType.CONNECT_ERROR;
-			checkLength(this.command, length);
-			break;
-		case "DN":
-			this.command = StatusType.DISCONNECT;
-			checkLength(this.command, length);
-			break;
-		case "DC":
-			this.command = StatusType.DISCONNECT_SUCCESS;
-			checkLength(this.command, length);
-			break;
-		case "FL":
-			this.command = StatusType.FAILED;
-			checkLength(this.command, length);
-			break;
-		default:
+	private void setType(String command) throws InvalidMessageException {
+		try {
+			this.command = StatusType.valueOf(command);
+		} catch (Exception ex) {
 			throw new InvalidMessageException("This code does not represent a command.");	
-		}
-	}
-
-	private void checkLength(StatusType command, int length) throws InvalidMessageException {
-		if (getCorrectLength(command) != length) {
-			throw new InvalidMessageException("Number of arguments invalid for the command");
 		}
 	}
 
@@ -260,38 +194,5 @@ public class KVQuery {
 			return 3;
 		}
 		return 4;
-	}
-	
-
-	private String getCommandCode(StatusType command) {
-		if (command.equals(StatusType.GET))
-			return "GT";
-		else if (command.equals(StatusType.GET_ERROR))
-			return "GE";
-		else if (command.equals(StatusType.GET_SUCCESS))
-			return "GS";
-		else if (command.equals(StatusType.PUT))
-			return "PT";
-		else if (command.equals(StatusType.PUT_SUCCESS))
-			return "PS";
-		else if (command.equals(StatusType.PUT_UPDATE))
-			return "PU";
-		else if (command.equals(StatusType.PUT_ERROR))
-			return "PE";
-		else if (command.equals(StatusType.DELETE_SUCCESS))
-			return "DS";
-		else if (command.equals(StatusType.DELETE_ERROR))
-			return "DE";
-		else if (command.equals(StatusType.CONNECT))
-			return "CN";
-		else if (command.equals(StatusType.CONNECT_SUCCESS))
-			return "CS";
-		else if (command.equals(StatusType.CONNECT_ERROR))
-			return "CE";
-		else if (command.equals(StatusType.DISCONNECT))
-			return "DN";
-		else if (command.equals(StatusType.DISCONNECT_SUCCESS))
-			return "DS";
-		return "FL";
 	}
 }
