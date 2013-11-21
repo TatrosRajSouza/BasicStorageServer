@@ -4,20 +4,21 @@ Enumerator used to represent the command being issued associated with the argume
 it receive and who sends this type of command.
 public enum StatusType {
 	GET 			<key>				- Client
-	GET_ERROR 		<key> 				- Server
-	GET_SUCCESS		<key, value>		- Server
 	PUT 			<key, value>		- Client
-	PUT_SUCCESS		<key, value>		- Server
-	PUT_UPDATE		<key, value>		- Server
-	PUT_ERROR 		<key, value>		- Server
-	DELETE_SUCCESS 	<key, value>		- Server
-	DELETE_ERROR 	<key, value>		- Server
 	CONNECT								- Client
-	CONNECT_SUCCESS <message>			- Server
-	CONNECT_ERROR						- Server
 	DISCONNECT							- Client
-	DISCONNECT_SUCCESS					- Server
-	FAILED 			<message>			- Server
+	
+	GET_ERROR 		<key> 				- Server - response to GET
+	GET_SUCCESS		<key, value>		- Server - response to GET
+	PUT_SUCCESS		<key, value>		- Server - response to PUT
+	PUT_UPDATE		<key, value>		- Server - response to PUT
+	PUT_ERROR 		<key, value>		- Server - response to PUT
+	DELETE_SUCCESS 	<key, value>		- Server - response to PUT
+	DELETE_ERROR 	<key, value>		- Server - response to PUT
+	CONNECT_SUCCESS <message>			- Server - response to CONNECT
+	CONNECT_ERROR						- Server - response to CONNECT
+	DISCONNECT_SUCCESS					- Server - response to DISCONNECT
+	FAILED 			<message>			- Server - response to wrong command
 }
 
 Structure of the message being sent from server to client (in bytes)
