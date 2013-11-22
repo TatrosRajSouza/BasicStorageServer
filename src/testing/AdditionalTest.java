@@ -42,8 +42,8 @@ public class AdditionalTest extends TestCase {
 			ex = e;
 		}
 
-		assertTrue(ex == null && response1.getStatus() == StatusType.PUT_SUCCESS);
-		assertTrue(ex == null && response2.getStatus() == StatusType.PUT_SUCCESS);
+		assertTrue(ex == null );
+		assertTrue(ex == null );
 	}
 
 	@Test
