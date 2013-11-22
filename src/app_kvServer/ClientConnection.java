@@ -66,7 +66,7 @@ public class ClientConnection implements Runnable {
 					try {
 						kvQueryCommand = new KVQuery(latestMsg);
 						String key=null,value=null,returnValue=null;
-						String command = kvQueryCommand.getCommand().toString();
+						String command = kvQueryCommand.getStatus().toString();
 						logger.debug("Received Command is: " + command);
 
 						if(command.equals("GET"))	{

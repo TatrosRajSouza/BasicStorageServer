@@ -32,7 +32,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.CONNECT);
+		assertEquals(kvQuery.getStatus(), StatusType.CONNECT);
 	}
 	
 	@Test
@@ -50,7 +50,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.GET);
+		assertEquals(kvQuery.getStatus(), StatusType.GET);
 		try {
 			assertEquals(kvQuery.getKey(), "foo");
 		} catch (InvalidMessageException e) {
@@ -74,7 +74,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.PUT);
+		assertEquals(kvQuery.getStatus(), StatusType.PUT);
 		try {
 			assertEquals(kvQuery.getKey(), "foo");
 		} catch (InvalidMessageException e) {
@@ -127,7 +127,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.CONNECT);
+		assertEquals(kvQuery.getStatus(), StatusType.CONNECT);
 	}
 	
 	@Test
@@ -144,7 +144,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.GET);
+		assertEquals(kvQuery.getStatus(), StatusType.GET);
 		assertEquals(key, "foo");
 	}
 	
@@ -162,7 +162,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.CONNECT_SUCCESS);
+		assertEquals(kvQuery.getStatus(), StatusType.CONNECT_SUCCESS);
 		assertEquals(message, "conexion established");
 	}
 	
@@ -182,7 +182,7 @@ public class QueryTest extends TestCase{
 		}
 		
 		assertNull(ex);
-		assertEquals(kvQuery.getCommand(), StatusType.PUT);
+		assertEquals(kvQuery.getStatus(), StatusType.PUT);
 		assertEquals(key, "foo");
 		assertEquals(value, "bar");
 	}

@@ -62,6 +62,7 @@ public class InteractionTest extends TestCase {
 		String key = "updateTestValue";
 		String initialValue = "initial";
 		String updatedValue = "updated";
+		String value = null;
 		
 		KVMessage response = null;
 		Exception ex = null;
@@ -69,13 +70,13 @@ public class InteractionTest extends TestCase {
 		try {
 			kvClient.put(key, initialValue);
 			response = kvClient.put(key, updatedValue);
-			
+			value = response.getValue();
 		} catch (Exception e) {
 			ex = e;
 		}
 
 		assertTrue(ex == null && response.getStatus() == StatusType.PUT_UPDATE
-				&& response.getValue().equals(updatedValue));
+				&& value.equals(updatedValue));
 	}
 	
 	@Test
@@ -101,17 +102,19 @@ public class InteractionTest extends TestCase {
 	public void testGet() {
 		String key = "foo";
 		String value = "bar";
+		String valuePut = null;
 		KVMessage response = null;
 		Exception ex = null;
 
 			try {
 				kvClient.put(key, value);
 				response = kvClient.get(key);
+				valuePut = response.getValue();
 			} catch (Exception e) {
 				ex = e;
 			}
 		
-		assertTrue(ex == null && response.getValue().equals("bar"));
+		assertTrue(ex == null && valuePut.equals("bar"));
 	}
 
 	@Test

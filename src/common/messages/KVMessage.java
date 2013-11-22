@@ -23,14 +23,16 @@ public interface KVMessage {
 	/**
 	 * @return the key that is associated with this message, 
 	 * 		null if not key is associated.
+	 * @throws InvalidMessageException if the message does not has a value
 	 */
-	public String getKey();
+	public String getKey() throws InvalidMessageException;
 	
 	/**
 	 * @return the value that is associated with this message, 
 	 * 		null if not value is associated.
+	 * @throws InvalidMessageException if the message does not has a value
 	 */
-	public String getValue();
+	public String getValue() throws InvalidMessageException;
 	
 	/**
 	 * @return a status string that is used to identify request types, 

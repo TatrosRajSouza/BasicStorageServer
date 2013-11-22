@@ -2,15 +2,13 @@ package common.messages;
 
 import org.apache.log4j.Logger;
 
-import common.messages.KVMessage.StatusType;
-
 /**
  * Create a message from or to client/server.
  * Implements the protocol established for this application
  * @author Claynon de Souza
  *
  */
-public class KVQuery {
+public class KVQuery implements KVMessage {
 	private StatusType command;
 	private String key;
 	private String value;
@@ -142,7 +140,7 @@ public class KVQuery {
 	 * Get the type of command the message is
 	 * @return the command of the message
 	 */
-	public StatusType getCommand() {
+	public StatusType getStatus() {
 		return this.command;
 	}
 

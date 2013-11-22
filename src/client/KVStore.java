@@ -35,17 +35,17 @@ public class KVStore implements KVCommInterface {
 		byte[] connectResponse = kvComm.receiveMessage();
 		KVQuery kvQueryMessage = new KVQuery(connectResponse);
 		
-		if (kvQueryMessage.getCommand() == StatusType.CONNECT_SUCCESS) {
+		if (kvQueryMessage.getStatus() == StatusType.CONNECT_SUCCESS) {
 			logger.info("Connected to KVServer");
 			logger.info("Server Message: " + kvQueryMessage.getTextMessage());
 		}
 		
-		else if (kvQueryMessage.getCommand() == StatusType.CONNECT_ERROR) {
+		else if (kvQueryMessage.getStatus() == StatusType.CONNECT_ERROR) {
 			logger.error("Unable to connect to KVServer.");
 		}
 		
 		else {
-			logger.error("Unknown Message received from KVServer. Type: " + kvQueryMessage.getCommand().toString());
+			logger.error("Unknown Message received from KVServer. Type: " + kvQueryMessage.getStatus().toString());
 		}
 	}
 
@@ -80,7 +80,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			byte[] putResponse = kvComm.receiveMessage();
 			KVQuery kvQueryMessage = new KVQuery(putResponse);
-			KVResult kvResult = new KVResult(kvQueryMessage.getCommand(), kvQueryMessage.getKey(), kvQueryMessage.getValue());
+			KVResult kvResult = new KVResult(kvQueryMessage.getStatus(), kvQueryMessage.getKey(), kvQueryMessage.getValue());
 			return kvResult;
 		} catch (InvalidMessageException ex) {
 			logger.error("Unable to generate KVQueryMessage from Server response:\n" + ex.getMessage());
@@ -108,7 +108,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			byte[] getResponse = kvComm.receiveMessage();
 			KVQuery kvQueryMessage = new KVQuery(getResponse);
-			KVResult kvResult = new KVResult(kvQueryMessage.getCommand(), kvQueryMessage.getKey(), kvQueryMessage.getValue());
+			KVResult kvResult = new KVResult(kvQueryMessage.getStatus(), kvQueryMessage.getKey(), kvQueryMessage.getValue());
 			return kvResult;
 		} catch (InvalidMessageException ex) {
 			logger.error("Unable to generate KVQueryMessage from Server response:\n" + ex.getMessage());
