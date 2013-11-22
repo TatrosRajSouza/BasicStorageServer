@@ -124,7 +124,7 @@ public class KVServer extends Thread {
 	 * Main entry point for the echo server application. 
 	 * @param args contains the port number at args[0].
 	 */
-	/*public static void main(String[] args) {
+	public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
 			if(args.length != 1) {
@@ -144,9 +144,9 @@ public class KVServer extends Thread {
 			System.exit(1);
 		}
 	}
-}*/
+}
 	//only for testing
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
 			System.setProperty("file.encoding", "US-ASCII");
@@ -163,7 +163,7 @@ public class KVServer extends Thread {
 			System.exit(1);
 		}
 	}
-}
+}*/
 /*public static void main(String[] args) {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
