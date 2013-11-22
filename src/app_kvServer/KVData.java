@@ -15,22 +15,19 @@ public class KVData {
 		String returnValue = null;
 		if(value!= null)
 		{
-			  returnValue  = "putfail";
-			if(dataStore.putIfAbsent(key, value) == null)
-				returnValue = "put";
-			else
+			returnValue = dataStore.putIfAbsent(key, value);
+			if(returnValue != null)
 			{
-				returnValue= "replacefail";
-				if(dataStore.replace(key, value)!=null)
+
+				if(dataStore.replace(key, value)!= null)
 					returnValue = dataStore.get(key);
 			}
 		}
 		else
 		{
-			returnValue = "deletefail";
-			dataStore.remove(key);
-			returnValue = "deleted";
-			
+
+			returnValue =dataStore.remove(key);
+
 		}
 		return returnValue;
 

@@ -33,7 +33,7 @@ public class KVQuery {
 
 		message = new String(bytes);
 		// removing /r of the end. Neccessary for setType() of no argument case.
-		message = message.substring(0, message.length() - 1);
+		message = message.substring(0, message.length());
 		arguments = message.split("\n");
 
 		if (arguments.length >= 1 && arguments.length <= 3 && bytes.length <= DROP_SIZE) {

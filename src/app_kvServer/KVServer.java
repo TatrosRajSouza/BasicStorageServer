@@ -150,7 +150,7 @@ public class KVServer extends Thread {
 		try {
 			new LogSetup("logs/server.log", Level.ALL);
 			System.setProperty("file.encoding", "US-ASCII");
-			int port = 50001;
+			int port = 50000;
 			new KVServer(port).start();
 
 		} catch (IOException e) {

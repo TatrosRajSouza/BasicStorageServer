@@ -105,7 +105,7 @@ public class ClientConnection implements Runnable {
 								{
 									if(returnValue == null)
 									{
-										KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,key,returnValue);
+										KVQuery kvQueryPut = new KVQuery(KVMessage.StatusType.PUT_SUCCESS,key,value);
 										sendMessage(kvQueryPut.toBytes());
 									}
 									else if(returnValue == value)
@@ -121,11 +121,13 @@ public class ClientConnection implements Runnable {
 									}
 								}
 
-								if(value == null && returnValue != null)
+								if(value == null )
 								{
+									if(returnValue != null)
+									{
 									KVQuery kvQueryDelete = new KVQuery(KVMessage.StatusType.DELETE_SUCCESS);
 									sendMessage(kvQueryDelete.toBytes());
-								}
+									}
 								else
 								{
 									String errorMsg = "Error in Delete operation for Key:"+key  ;
@@ -133,7 +135,8 @@ public class ClientConnection implements Runnable {
 									sendError(KVMessage.StatusType.DELETE_ERROR,errorMsg);
 								}
 
-							}
+								}
+						}
 							
 					} catch (InvalidMessageException e) {
 						logger.error("Invalid message received from client");	
@@ -164,18 +167,7 @@ public class ClientConnection implements Runnable {
 		}
 	}
 
-	private void checkFailType(String returnValue, String key, String value) throws UnsupportedEncodingException, IOException {
-		// TODO Auto-generated method stub
-		if(returnValue == "deletefail")
-		{
-
-		}
-		else
-		{
-
-		}
-
-	}
+	
 
 	private void sendError(KVMessage.StatusType statusType, String errorMsg) throws UnsupportedEncodingException, IOException {
 		KVQuery kvQueryError;
