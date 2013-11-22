@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 public class AdditionalTest extends TestCase {
 
 	@BeforeClass
-	public void testStartServer() {
+	public static void testStartServer() {
 		AllTests.startServer();
 	}
 
