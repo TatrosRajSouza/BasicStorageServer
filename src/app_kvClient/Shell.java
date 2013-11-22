@@ -76,7 +76,12 @@ public class Shell {
 				try{
 					serverAddress = tokens[1];
 					serverPort = Integer.parseInt(tokens[2]);
-					kvClient.connect(serverAddress, serverPort);
+					if (serverPort > 0 && serverPort <= 65535)
+						kvClient.connect(serverAddress, serverPort);
+					else {
+						System.out.println("Invalid Port.");
+						logger.error("Invalid Port Number");
+					}
 				} catch(NumberFormatException nfe) {
 					// printError("No valid address. Port must be a number!");
 					logger.warn("Unable to parse argument <port>");
@@ -142,7 +147,11 @@ public class Shell {
 			
 		} else if(tokens[0].equals("disconnect")) {
 			try {
-			kvClient.disconnect();
+				if (kvClient != null)
+					kvClient.disconnect();
+				else {
+					System.out.println("You must connect first.");
+				}
 			} catch (ConnectException ex) {
 				logger.error("Connection error: " + ex.getMessage());
 			}
