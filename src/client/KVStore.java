@@ -2,9 +2,11 @@ package client;
 
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import org.apache.log4j.Logger;
 import app_kvClient.KVClient;
+import app_kvClient.SocketStatus;
 import common.messages.InvalidMessageException;
 import common.messages.KVMessage;
 import common.messages.KVQuery;
@@ -16,6 +18,8 @@ public class KVStore implements KVCommInterface {
 	private Logger logger;
 	private String address;
 	private int port;
+	private int currentRetries = 0;
+	private static final int NUM_RETRIES = 3;
 	
 	
 	/**
@@ -61,7 +65,36 @@ public class KVStore implements KVCommInterface {
 		
 		// TODO: WAIT FOR DISCONNECT_SUCCESS MESSAGE THEN DISCONNECT
 		// As this is never sent by the server I simply close the connection for now.
-		kvComm.closeConnection();
+		// Wait for answer
+		logger.info("Waiting for disconnect response from server...");
+		try {
+			byte[] disconnectResponse = kvComm.receiveMessage();
+			KVQuery kvQueryMessage = new KVQuery(disconnectResponse);
+			if (kvQueryMessage.getStatus() == StatusType.DISCONNECT_SUCCESS) {
+				logger.info("Successfully disconnected from server.");
+			} else {
+				logger.error("No or invalid response from Server, the connection will be closed forcefully.");
+			}
+		} catch (InvalidMessageException ex) {
+			logger.error("Unable to generate KVQueryMessage from Server response:\n" + ex.getMessage());
+			// ex.printStackTrace();
+		} catch (SocketTimeoutException ex) {
+			if (NUM_RETRIES > currentRetries) {
+				currentRetries++;
+				logger.error("The connection to the KVServer timed out. " +
+						"Retrying (" + currentRetries + "/" + NUM_RETRIES + ")");
+				this.disconnect();
+			} else {
+				logger.error("The connection to the KVServer timed out. Closing the connection forcefully.");
+			}
+		} catch (IOException ex) {
+			logger.error("Connection closed forcefully " +
+					"because an IO Exception occured while waiting for PUT response from the server:\n" + ex.getMessage());
+			// ex.printStackTrace();
+		}
+		
+		if (kvComm.getSocketStatus() == SocketStatus.CONNECTED)
+			kvComm.closeConnection();
 	}
 
 	@Override
@@ -76,7 +109,7 @@ public class KVStore implements KVCommInterface {
 		}
 		
 		// Wait for answer
-		logger.info("Waiting for PUT response from server..");
+		logger.info("Waiting for PUT response from server...");
 		try {
 			byte[] putResponse = kvComm.receiveMessage();
 			KVQuery kvQueryMessage = new KVQuery(putResponse);
@@ -84,10 +117,12 @@ public class KVStore implements KVCommInterface {
 			return kvResult;
 		} catch (InvalidMessageException ex) {
 			logger.error("Unable to generate KVQueryMessage from Server response:\n" + ex.getMessage());
-			ex.printStackTrace();
+			// ex.printStackTrace();
+		} catch (SocketTimeoutException ex) {
+			logger.error("The server did not respond to the PUT Request :(. Please try again at a later time.");
 		} catch (IOException ex) {
 			logger.error("An IO Exception occured while waiting for PUT response from the server:\n" + ex.getMessage());
-			ex.printStackTrace();
+			// ex.printStackTrace();
 		}
 		return null;
 	}
@@ -97,6 +132,8 @@ public class KVStore implements KVCommInterface {
 		try {
 			kvComm.sendMessage(new KVQuery(StatusType.GET, key).toBytes());
 			logger.info("Sent GET Request for <key>: <" + key + ">");
+		} catch (SocketTimeoutException ex) {
+			logger.error("Unable to transmit GET Request :(. The connection timed out. Please try again at a later time.");
 		} catch (IOException ex) {
 			logger.error("Unable to send get command, an IO Error occured during transmission:\n" + ex.getMessage());
 		} catch (InvalidMessageException ex) {
@@ -104,7 +141,7 @@ public class KVStore implements KVCommInterface {
 		}
 		
 		// Wait for answer
-		logger.info("Waiting for GET response from server..");
+		logger.info("Waiting for GET response from server...");
 		try {
 			byte[] getResponse = kvComm.receiveMessage();
 			KVQuery kvQueryMessage = new KVQuery(getResponse);
@@ -112,10 +149,12 @@ public class KVStore implements KVCommInterface {
 			return kvResult;
 		} catch (InvalidMessageException ex) {
 			logger.error("Unable to generate KVQueryMessage from Server response:\n" + ex.getMessage());
-			ex.printStackTrace();
+			// ex.printStackTrace();
+		} catch (SocketTimeoutException ex) {
+			logger.error("The server did not respond to the GET REquest :(. Please try again at a later time.");
 		} catch (IOException ex) {
 			logger.error("An IO Exception occured while waiting for GET response from the server:\n" + ex.getMessage());
-			ex.printStackTrace();
+			// ex.printStackTrace();
 		}
 		return null;
 	}

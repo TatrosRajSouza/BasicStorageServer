@@ -3,6 +3,7 @@ package app_kvClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 
 import logger.LogSetup;
@@ -55,14 +56,16 @@ public class Shell {
 					serverPort = Integer.parseInt(tokens[2]);
 					kvClient.connect(serverAddress, serverPort);
 				} catch(NumberFormatException nfe) {
-					printError("No valid address. Port must be a number!");
-					logger.info("Unable to parse argument <port>", nfe);
+					// printError("No valid address. Port must be a number!");
+					logger.warn("Unable to parse argument <port>");
 				} catch (UnknownHostException e) {
-					printError("Unknown Host!");
-					logger.info("Unknown Host!", e);
+					// printError("Unknown Host!");
+					logger.warn("Unknown Host!");
+				} catch (ConnectException ex) {
+					logger.warn("Could not establish connection! Reason: " + ex.getMessage());
 				} catch (IOException e) {
-					printError("Could not establish connection!");
-					logger.warn("Could not establish connection!", e);
+					// printError("Could not establish connection!");
+					logger.warn("Could not establish connection!");
 				}
 			} else {
 				printError("Invalid number of parameters!");

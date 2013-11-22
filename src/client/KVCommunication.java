@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import org.apache.log4j.Logger;
 import app_kvClient.KVClient;
@@ -16,6 +17,7 @@ public class KVCommunication {
 	private OutputStream output;
  	private InputStream input;
  	
+ 	private static final int TIMEOUT_MS = 3000;
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 1024 * BUFFER_SIZE;
 	
@@ -24,9 +26,10 @@ public class KVCommunication {
 		connect(address, port);
 	}
 	
-	private void connect(String address, int port) throws UnknownHostException, IOException
+	private void connect(String address, int port) throws UnknownHostException, IOException, SocketTimeoutException
 	{
 		clientSocket = new Socket(address, port);
+		clientSocket.setSoTimeout(TIMEOUT_MS);
 		setSocketStatus(SocketStatus.CONNECTED);
 		logger.info("Connection established");
 	}
@@ -52,7 +55,7 @@ public class KVCommunication {
 			
 			clientSocket.close();
 			clientSocket = null;
-			logger.info("connection closed!");
+			logger.info("Connection closed by communication module!");
 		}
 	}
 	
@@ -61,7 +64,7 @@ public class KVCommunication {
 	 * @param msg the message that is to be sent.
 	 * @throws IOException some I/O error regarding the output stream 
 	 */
-	public void sendMessage(byte[] msgBytes) throws IOException {
+	public void sendMessage(byte[] msgBytes) throws IOException, SocketTimeoutException {
 		if (msgBytes != null) {
 		output = clientSocket.getOutputStream();
 		output.write(msgBytes, 0, msgBytes.length);
@@ -75,7 +78,7 @@ public class KVCommunication {
 		}
 	}
 	
-	public byte[] receiveMessage() throws IOException {
+	public byte[] receiveMessage() throws IOException, SocketTimeoutException {
 		input = clientSocket.getInputStream();
 		int index = 0;
 		byte[] msgBytes = null, tmp = null;

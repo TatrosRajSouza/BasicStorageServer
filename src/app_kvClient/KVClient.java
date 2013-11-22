@@ -27,11 +27,11 @@ public class KVClient {
 			new LogSetup("logs/client.log", Level.ALL);
 		} catch (IOException e) {
 			System.out.println("Error! Unable to initialize logger!");
-			e.printStackTrace();
+			// e.printStackTrace();
 			System.exit(1);
 		} catch (SecurityException ex) {
 			System.out.println("Error! Unable to set enconding to ASCII.");
-			ex.printStackTrace();
+			// ex.printStackTrace();
 			System.exit(1);
 		}
     	
@@ -39,7 +39,8 @@ public class KVClient {
     		Shell shell = new Shell(new KVClient());
     		shell.display();
     	} catch (Exception ex)	{
-    		ex.printStackTrace();
+    		logger.error("A fatal error occured. The program will now exit.");
+    		// ex.printStackTrace();
     		System.exit(1);
     	}
     }
@@ -55,7 +56,7 @@ public class KVClient {
 			kvStore.connect();
 		} catch (InvalidMessageException ex) {
 			System.out.println("Unable to connect to server. Received an invalid message: \n" + ex.getMessage());
-			ex.printStackTrace();
+			// ex.printStackTrace();
 		}
 	}
 	
