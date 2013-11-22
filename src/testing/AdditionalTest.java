@@ -8,7 +8,6 @@ import org.junit.Test;
 import client.KVStore;
 import common.messages.InvalidMessageException;
 import common.messages.KVMessage;
-import common.messages.KVMessage.StatusType;
 import junit.framework.TestCase;
 
 /*	To the person that is going to grade this assignment.
@@ -32,12 +31,11 @@ public class AdditionalTest extends TestCase {
 		String value = "bar";
 		String key1 = "foobar1";
 		String value1 = "bar1";
-		KVMessage response1=null,response2 = null;
 		Exception ex = null;
 
 		try {
-			response1 = kvClient1.put(key, value);
-			response2 = kvClient2.put(key1, value1);
+			kvClient1.put(key, value);
+			kvClient2.put(key1, value1);
 		} catch (Exception e) {
 			ex = e;
 		}
