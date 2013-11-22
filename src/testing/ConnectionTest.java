@@ -11,7 +11,7 @@ import junit.framework.TestCase;
 public class ConnectionTest extends TestCase {
 
 	@BeforeClass
-	public void testStartServer() {
+	public static void testStartServer() {
 		AllTests.startServer();
 	}
 	

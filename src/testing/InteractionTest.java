@@ -14,7 +14,7 @@ public class InteractionTest extends TestCase {
 	private KVStore kvClient;
 
 	@BeforeClass
-	public void testStartServer() {
+	public static void testStartServer() {
 		AllTests.startServer();
 	}
 	
