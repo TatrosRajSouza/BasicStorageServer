@@ -2,6 +2,12 @@ package client;
 
 import common.messages.KVMessage;
 
+/**
+ * Implements the KVMessage Interface, giving users of the library
+ * access to retrieved information, such as the received message type, keys and their values. 
+ * @author Elias Tatros
+ *
+ */
 public class KVResult implements KVMessage {
 	StatusType status;
 	String key;

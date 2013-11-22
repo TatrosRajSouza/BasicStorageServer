@@ -10,6 +10,11 @@ import org.apache.log4j.Logger;
 import app_kvClient.KVClient;
 import app_kvClient.SocketStatus;
 
+/**
+ * Handles all basic communication logic used by the KVStore library. Holder of the communication socket.
+ * @author Elias Tatros
+ *
+ */
 public class KVCommunication {
 	private Logger logger;
 	private Socket clientSocket;
@@ -17,15 +22,30 @@ public class KVCommunication {
 	private OutputStream output;
  	private InputStream input;
  	
- 	private static final int TIMEOUT_MS = 3000;
+ 	private static final int TIMEOUT_MS = 5000;
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 1024 * BUFFER_SIZE;
 	
+	/**
+	 * Initializes communication by establishing a connection to the given address and port
+	 * @param address
+	 * @param port
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 	public KVCommunication(String address, int port) throws UnknownHostException, IOException {
 		logger = KVClient.getLogger();
 		connect(address, port);
 	}
 	
+	/**
+	 * Establishes socket connection to given address and port
+	 * @param address the IPv4 address of the KVServer
+	 * @param port valid port
+	 * @throws UnknownHostException If the address cannot be resolved
+	 * @throws IOException In case of communication error
+	 * @throws SocketTimeoutException If the KVServer is unreachable.
+	 */
 	private void connect(String address, int port) throws UnknownHostException, IOException, SocketTimeoutException
 	{
 		clientSocket = new Socket(address, port);
@@ -34,6 +54,9 @@ public class KVCommunication {
 		logger.info("Connection established");
 	}
 	
+	/**
+	 * Gracefully closes the connection to the KVServer.
+	 */
 	public void closeConnection() {
 		logger.info("try to close connection ...");
 		
@@ -45,6 +68,10 @@ public class KVCommunication {
 		}
 	}
 	
+	/**
+	 * Closes socket and streams.
+	 * @throws IOException
+	 */
 	private void tearDownConnection() throws IOException {
 		logger.info("tearing down the connection ...");
 		if (clientSocket != null) {
@@ -78,6 +105,12 @@ public class KVCommunication {
 		}
 	}
 	
+	/**
+	 * Receives a message as a byte array.
+	 * @return the message as byte array
+	 * @throws IOException In case of communication error
+	 * @throws SocketTimeoutException If no message is received from the server within the timeout interval.
+	 */
 	public byte[] receiveMessage() throws IOException, SocketTimeoutException {
 		input = clientSocket.getInputStream();
 		int index = 0;
@@ -139,10 +172,18 @@ public class KVCommunication {
 		return msgBytes;
 	}
 
+	/**
+	 * Current status of the connection
+	 * @return SocketStatus the status of the connection
+	 */
 	public SocketStatus getSocketStatus() {
 		return socketStatus;
 	}
 
+	/**
+	 * Internal use only. Sets the communication/socket status.
+	 * @param socketStatus the status.
+	 */
 	private void setSocketStatus(SocketStatus socketStatus) {
 		this.socketStatus = socketStatus;
 	}

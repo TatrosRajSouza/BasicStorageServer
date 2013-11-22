@@ -15,6 +15,11 @@ import common.messages.KVMessage;
 import common.messages.KVQuery;
 import common.messages.KVMessage.StatusType;
 
+/**
+ * A library that enables any client application to communicate with a KVServer.
+ * @author Elias Tatros
+ *
+ */
 public class KVStore implements KVCommInterface {
 
 	private KVCommunication kvComm;
@@ -35,7 +40,10 @@ public class KVStore implements KVCommInterface {
 		this.port = port;
 		this.logger = KVClient.getLogger();
 	}
-	
+
+	/**
+	 * Try to establish Connection to the KVServer.
+	 */
 	@Override
 	public void connect() throws UnknownHostException, IOException, InvalidMessageException {
 		kvComm = new KVCommunication(address, port);
@@ -56,6 +64,9 @@ public class KVStore implements KVCommInterface {
 		}
 	}
 
+	/**
+	 * Disconnect from the KVServer.
+	 */
 	@Override
 	public void disconnect() {
 		if (kvComm != null && kvComm.getSocketStatus() == SocketStatus.CONNECTED) {
@@ -106,6 +117,12 @@ public class KVStore implements KVCommInterface {
 		}
 	}
 
+	/**
+	 * Put a key value pair to the remote KVServer
+	 * @param key The key that should be inserted
+	 * @param value The value associated with the key
+	 * @return KVMessage Information retrieved from the server (e.g. if operation successful)
+	 */
 	@Override
 	public KVMessage put(String key, String value) throws ConnectException {
 		if (kvComm.getSocketStatus() == SocketStatus.CONNECTED) {
@@ -140,6 +157,11 @@ public class KVStore implements KVCommInterface {
 		}
 	}
 
+	/**
+	 * Obtain the value of a given key from the remote KVServer.
+	 * @param key the key that the value should be obtained for
+	 * @return KVMessage Information from the server (e.g. GET_SUCESS and value for key if successful, error otherwise).
+	 */
 	@Override
 	public KVMessage get(String key) throws ConnectException {
 		if (kvComm.getSocketStatus() == SocketStatus.CONNECTED) {

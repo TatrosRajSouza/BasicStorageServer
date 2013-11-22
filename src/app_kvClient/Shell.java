@@ -10,6 +10,13 @@ import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import common.messages.InvalidMessageException;
+import common.messages.KVMessage;
+
+/**
+ * Simple command line Shell based on provided skeleton-code used for user-interaction with KVClient.
+ * @author Elias Tatros
+ */
 public class Shell {
 	private Logger logger;
 	private static final String PROMPT = "KVClient> ";
@@ -20,12 +27,19 @@ public class Shell {
 	private String serverAddress;
 	private int serverPort;
 	
+	/**
+	 * Constructor for the Shell
+	 * @param kvClient a KVClient instance
+	 */
 	public Shell(KVClient kvClient)
 	{
 		this.kvClient = kvClient;
 		this.logger = KVClient.getLogger();
 	}
 	
+	/**
+	 * Shell main loop, calls handleCommand on user-input
+	 */
 	public void display() {
 		while(!stop) {
 			stdin = new BufferedReader(new InputStreamReader(System.in));
@@ -41,6 +55,10 @@ public class Shell {
 		}
 	}
 		
+	/**
+	 * Handles a certain set of commands, calling the respective KVClient methods and displaying return results.
+	 * @param cmdLine command entered by the user
+	 */
 	private void handleCommand(String cmdLine) {
 		String[] tokens = cmdLine.split("\\s+");
 
@@ -87,7 +105,13 @@ public class Shell {
 				}	
 				
 				try {
-					kvClient.put(key, value.toString());
+					System.out.println("\n>>>> Sending PUT request for <" + key + ", " + value + ">\n");
+					KVMessage kvResult = kvClient.put(key, value.toString());
+					try {
+						System.out.println("\n>>> Received: " + kvResult.getStatus().toString() + ", key: " + kvResult.getKey() + ", value: " + kvResult.getValue());
+					} catch (InvalidMessageException ex) {
+						System.out.println("Unable to read the return Message. Reason: " + ex.getMessage());
+					}
 				} catch (ConnectException ex) {
 					logger.error("Unable to use Put command: " + ex.getMessage());
 				}
@@ -101,7 +125,13 @@ public class Shell {
 				String key = tokens[1];
 				
 				try {
-					kvClient.get(key);
+					System.out.println("\n>>> Sending GET request for key " + key);
+					KVMessage kvResult = kvClient.get(key);
+					try {
+						System.out.println("\n>>> Received: " + kvResult.getStatus().toString() + ", value: " + kvResult.getValue());
+					} catch (InvalidMessageException ex) {
+						System.out.println("Unable to read the return Message. Reason: " + ex.getMessage());
+					}
 				} catch (ConnectException ex) {
 					logger.error("Unable to use Put command: " + ex.getMessage());
 				}
@@ -139,6 +169,9 @@ public class Shell {
 		}
 	}
 	
+	/**
+	 * Print the available commands.
+	 */
 	private void printHelp() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PROMPT).append("ECHO CLIENT HELP (Usage):\n");
