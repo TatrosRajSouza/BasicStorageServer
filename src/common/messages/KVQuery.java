@@ -159,7 +159,6 @@ public class KVQuery implements KVMessage {
 	 * @throws InvalidMessageException if the query is not of the types CONNECT or FAILED 
 	 */
 	public String getTextMessage() throws InvalidMessageException {
-		/* Note: Again you confused CONNECT with CONNECT_SUCCESS. Changed it. */
 		if (!(command.equals(StatusType.CONNECT_SUCCESS) || command.equals(StatusType.FAILED))) {
 			throw new InvalidMessageException("This command doesn't have a text message. " + command.toString());
 		}
