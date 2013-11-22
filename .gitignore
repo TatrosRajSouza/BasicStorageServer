@@ -2,6 +2,6 @@
 CLIENT_MANIFEST.MF
 SERVER_MANIFEST.MF
 .gitignore.swp
-/logs
+/logs/
 ms2-client.jar
 ms2-server.jar
