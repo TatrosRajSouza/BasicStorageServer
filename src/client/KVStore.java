@@ -145,7 +145,7 @@ public class KVStore implements KVCommInterface {
 		try {
 			byte[] getResponse = kvComm.receiveMessage();
 			KVQuery kvQueryMessage = new KVQuery(getResponse);
-			KVResult kvResult = new KVResult(kvQueryMessage.getStatus(), kvQueryMessage.getKey(), kvQueryMessage.getValue());
+			KVResult kvResult = new KVResult(kvQueryMessage.getStatus(), kvQueryMessage.getValue(),kvQueryMessage.getKey());
 			return kvResult;
 		} catch (InvalidMessageException ex) {
 			logger.error("Unable to generate KVQueryMessage from Server response:\n" + ex.getMessage());
