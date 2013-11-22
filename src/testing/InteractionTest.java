@@ -1,5 +1,6 @@
 package testing;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import client.KVStore;
@@ -12,6 +13,11 @@ public class InteractionTest extends TestCase {
 
 	private KVStore kvClient;
 
+	@BeforeClass
+	public void testStartServer() {
+		AllTests.startServer();
+	}
+	
 	public void setUp() {
 		kvClient = new KVStore("localhost", 50000);
 		try {

@@ -3,6 +3,7 @@ package testing;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import client.KVStore;
@@ -11,15 +12,15 @@ import common.messages.KVMessage;
 import junit.framework.TestCase;
 
 /*	To the person that is going to grade this assignment.
- *	Please check the file QueryTest. The tests from KVQuery are there.
- *	They are so many that I took off here.
+ *	Please check the file QueryTest and KVDataTest.
+ *	They are so many that we took off here and separated in way that is easier to understand
  */
 public class AdditionalTest extends TestCase {
 
-	// TODO add your test cases, at least 3
-
-
-
+	@BeforeClass
+	public void testStartServer() {
+		AllTests.startServer();
+	}
 
 	@Test
 	public void testMultiplePut() throws UnknownHostException, IOException, InvalidMessageException {

@@ -3,6 +3,7 @@ package testing;
 import java.io.IOException;
 
 import org.apache.log4j.Level;
+import org.junit.BeforeClass;
 
 import app_kvServer.KVServer;
 import junit.framework.Test;
@@ -11,7 +12,16 @@ import logger.LogSetup;
 
 
 public class AllTests {
-
+	private static boolean isRunning = false;
+	
+	@BeforeClass
+	public static void startServer() {
+		if (!isRunning) {
+			KVServer.main(new String[]{"50000"});
+			isRunning = true;
+		}
+	}
+	
 	static {
 		try {
 			new LogSetup("logs/testing/test.log", Level.ERROR);
@@ -30,5 +40,4 @@ public class AllTests {
 		clientSuite.addTestSuite(QueryTest.class);
 		return clientSuite;
 	}
-	
 }
