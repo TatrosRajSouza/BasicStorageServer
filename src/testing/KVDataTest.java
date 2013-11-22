@@ -38,9 +38,10 @@ public class KVDataTest {
 		kvData.put("name1","jona");
 		kvData.put("name2","gull");
 		kvData.put("name2","seagull");
-		String returnValue = kvData.put("name2",null);
+		String returnValue = kvData.put("name2","null");
 		assertTrue( returnValue.equals("seagull"));
-		assertTrue(kvData.get("name2") == null);
+		String getValue = kvData.get("name2");
+		assertTrue(getValue == null);
 	}
 
 }
