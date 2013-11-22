@@ -61,7 +61,7 @@ public class KVQuery implements KVMessage {
 	 */
 	public KVQuery(StatusType command) throws InvalidMessageException {
 		if (command != StatusType.CONNECT && command != StatusType.CONNECT_ERROR
-				&& command != StatusType.DISCONNECT)
+				&& command != StatusType.DISCONNECT && command != StatusType.DISCONNECT_SUCCESS )
 			throw new InvalidMessageException("Incorrect number of arguments or unknown command.");
 
 		this.command = command;

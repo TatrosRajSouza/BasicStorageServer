@@ -138,6 +138,17 @@ public class ClientConnection implements Runnable {
 
 								}
 						}
+						else if(command.equals("DISCONNECT"))
+						{
+							KVQuery kvQueryDisconnect;
+							try {
+								kvQueryDisconnect = new KVQuery(KVMessage.StatusType.DISCONNECT_SUCCESS);
+								sendMessage(kvQueryDisconnect.toBytes());
+							} catch (InvalidMessageException e) {
+								// TODO Auto-generated catch block
+								logger.error("Error in sending disconnect message");
+							}
+						}
 							
 					} catch (InvalidMessageException e) {
 						logger.error("Invalid message received from client");
@@ -167,9 +178,12 @@ public class ClientConnection implements Runnable {
 
 			try {
 				if (clientSocket != null) {
+					
+					
 					input.close();
 					output.close();
 					clientSocket.close();
+					
 				}
 			} catch (IOException ioe) {
 				logger.error("Error! Unable to tear down connection!", ioe);

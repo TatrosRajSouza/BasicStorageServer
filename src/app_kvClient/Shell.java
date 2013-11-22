@@ -46,8 +46,12 @@ public class Shell {
 
 		if(tokens[0].equals("quit")) {	
 			stop = true;
+			try {
 			kvClient.disconnect();
 			System.out.println(PROMPT + "Application exit!");
+			} catch (ConnectException ex) {
+				logger.error("Connection Error: " + ex.getMessage());
+			}
 		
 		} else if (tokens[0].equals("connect")){
 			if(tokens.length == 3) {
@@ -81,7 +85,13 @@ public class Shell {
 						value.append(" ");
 					}
 				}	
-				kvClient.put(key, value.toString());
+				
+				try {
+					kvClient.put(key, value.toString());
+				} catch (ConnectException ex) {
+					logger.error("Unable to use Put command: " + ex.getMessage());
+				}
+				
 			} else {
 					printError("Invalid number of arguments for put operation.");
 			}
@@ -89,13 +99,23 @@ public class Shell {
 		} else  if (tokens[0].equals("get")) {
 			if(tokens.length == 2) {
 				String key = tokens[1];
-				kvClient.get(key);
+				
+				try {
+					kvClient.get(key);
+				} catch (ConnectException ex) {
+					logger.error("Unable to use Put command: " + ex.getMessage());
+				}
+				
 			} else {
 					printError("Invalid number of arguments for get operation.");
 			}
 			
 		} else if(tokens[0].equals("disconnect")) {
+			try {
 			kvClient.disconnect();
+			} catch (ConnectException ex) {
+				logger.error("Connection error: " + ex.getMessage());
+			}
 			
 		} else if(tokens[0].equals("logLevel")) {
 			if(tokens.length == 2) {

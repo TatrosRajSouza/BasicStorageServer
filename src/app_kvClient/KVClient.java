@@ -1,6 +1,7 @@
 package app_kvClient;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 
 import logger.LogSetup;
@@ -9,7 +10,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import common.messages.InvalidMessageException;
-
 import client.KVCommunication;
 import client.KVStore;
 
@@ -40,7 +40,7 @@ public class KVClient {
     		shell.display();
     	} catch (Exception ex)	{
     		logger.error("A fatal error occured. The program will now exit.");
-    		// ex.printStackTrace();
+    		ex.printStackTrace();
     		System.exit(1);
     	}
     }
@@ -60,15 +60,25 @@ public class KVClient {
 		}
 	}
 	
-	public void disconnect() {
-		kvStore.disconnect();
+	public void disconnect() throws ConnectException {
+		if (kvStore != null)
+			kvStore.disconnect();
+		else
+			throw new ConnectException("Not connected to a KVStore.");
 	}
 	
-	public void put(String key, String value) {
-		kvStore.put(key, value);
+	public void put(String key, String value) throws ConnectException {
+		if (kvStore != null)
+			kvStore.put(key, value);
+		else
+			throw new ConnectException("Not connected to a KVStore.");
 	}
 	
-	public void get(String key) {
-		kvStore.get(key);
+	public void get(String key)  throws ConnectException {
+		if (kvStore !=null)
+			kvStore.get(key);
+		else
+			throw new ConnectException("Not connected to a KVStore.");
+		
 	}
 }
