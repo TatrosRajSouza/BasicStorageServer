@@ -13,7 +13,7 @@ public class KVData {
 
 	public String put(String key, String value) {
 		String returnValue = null;
-		if(value!= null)
+		if(!value.equals("null"))
 		{
 			returnValue = dataStore.putIfAbsent(key, value);
 			if(returnValue != null)

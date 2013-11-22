@@ -25,21 +25,21 @@ public class InteractionTest extends TestCase {
 	}
 	
 	
-	@Test
-	public void testPut() {
-		String key = "foo";
-		String value = "bar";
-		KVMessage response = null;
-		Exception ex = null;
+	 @Test
+	    public void testPut() {
+	        String key = "foobar";
+	        String value = "bar";
+	        KVMessage response = null;
+	        Exception ex = null;
 
-		try {
-			response = kvClient.put(key, value);
-		} catch (Exception e) {
-			ex = e;
-		}
+	        try {
+	            response = kvClient.put(key, value);
+	        } catch (Exception e) {
+	            ex = e;
+	        }
 
-		assertTrue(ex == null && response.getStatus() == StatusType.PUT_SUCCESS);
-	}
+	        assertTrue(ex == null && response.getStatus() == StatusType.PUT_SUCCESS);
+	    }
 	
 	@Test
 	public void testPutDisconnected() {
