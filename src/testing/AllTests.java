@@ -38,6 +38,7 @@ public class AllTests {
 		clientSuite.addTestSuite(InteractionTest.class); 
 		clientSuite.addTestSuite(AdditionalTest.class); 
 		clientSuite.addTestSuite(QueryTest.class);
+		clientSuite.addTestSuite(KVDataTest.class);
 		return clientSuite;
 	}
 }

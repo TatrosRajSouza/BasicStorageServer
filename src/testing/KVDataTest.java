@@ -1,12 +1,12 @@
 package testing;
 
-import static org.junit.Assert.*;
+import junit.framework.TestCase;
 
 import org.junit.Test;
 
 import app_kvServer.KVData;
 
-public class KVDataTest {
+public class KVDataTest extends TestCase {
 
 	KVData kvData = new KVData();
 
