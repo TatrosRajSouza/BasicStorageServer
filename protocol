@@ -24,4 +24,4 @@ public enum StatusType {
 Structure of the message being sent from server to client (in bytes)
 Parts in square brackets [] are optional
 
-command '\n' [argument1 '\n' [argument2 '\n']] '\r'  
+command DELIMITER [argument1 DELIMITER [argument2 DELIMITER]] '\r'  

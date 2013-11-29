@@ -16,6 +16,8 @@ public class KVQuery implements KVMessage {
 
 	private String[] arguments;
 
+	public static final char DELIMITER = 0x1E;
+	
 	private static final int BUFFER_SIZE = 1024;
 	private static final int DROP_SIZE = 128 * BUFFER_SIZE;
 
@@ -34,7 +36,7 @@ public class KVQuery implements KVMessage {
 		if (message.endsWith("\r")) {
 			message = message.substring(0, message.length() - 1);
 		}
-		arguments = message.split("\n");
+		arguments = message.split(String.valueOf(DELIMITER));
 
 		if (arguments.length >= 1 && arguments.length <= 3 && bytes.length <= DROP_SIZE) {
 			setType(arguments[0]);
@@ -116,10 +118,10 @@ public class KVQuery implements KVMessage {
 			String message = command.toString() + "\r";
 			bytes = message.getBytes();
 		} else if (numArgs == 2) {
-			String message = command.toString() + "\n" + key + "\r";
+			String message = command.toString() + DELIMITER + key + "\r";
 			bytes = message.getBytes();
 		} else if (numArgs == 3) {
-			String message = command.toString() + "\n" + key + "\n" + value + "\r";
+			String message = command.toString() + DELIMITER + key + DELIMITER + value + "\r";
 			bytes = message.getBytes();
 		} else {
 			logger.error("Cannot convert KVQuery to bytes, since it has an incorrect number of arguments. (" + numArgs + ")");

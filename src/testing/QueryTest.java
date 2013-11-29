@@ -39,7 +39,7 @@ public class QueryTest extends TestCase{
 	public void testCreateOneArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "GET\nfoo\r";
+		String message = "GET" + KVQuery.DELIMITER + "foo\r";
 		InvalidMessageException ex = null;
 		
 		bytes = message.getBytes();
@@ -63,7 +63,7 @@ public class QueryTest extends TestCase{
 	public void testCreateTwoArgumentQueryFromByteArraySuccess() {
 		KVQuery kvQuery = null;
 		byte[] bytes;
-		String message = "PUT\nfoo\nbar\r";
+		String message = "PUT" + KVQuery.DELIMITER + "foo" + KVQuery.DELIMITER + "bar\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -86,7 +86,7 @@ public class QueryTest extends TestCase{
 	@Test
 	public void testCreateQueryUnknownCommandFromByteArray() {
 		byte[] bytes;
-		String message = "as\nfoo\nbar\r";
+		String message = "as" + KVQuery.DELIMITER  + "foo" + KVQuery.DELIMITER  + "bar\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -102,7 +102,7 @@ public class QueryTest extends TestCase{
 	@Test
 	public void testCreateQueryIncorrectSizeCommandFromByteArray() {
 		byte[] bytes;
-		String message = "as\nfoo\nbar\nasuh\r";
+		String message = "as" + KVQuery.DELIMITER  + "foo" + KVQuery.DELIMITER  + "bar" + KVQuery.DELIMITER  + "asuh\r";
 		Exception ex = null;
 		
 		bytes = message.getBytes();
@@ -270,6 +270,6 @@ public class QueryTest extends TestCase{
 		bytes = kvQuery.toBytes();
 		
 		assertNull(ex);
-		assertTrue(Arrays.equals(bytes, "PUT\nfoo\nbar\r".getBytes()));
+		assertTrue(Arrays.equals(bytes, ("PUT" + KVQuery.DELIMITER  + "foo" + KVQuery.DELIMITER  + "bar\r").getBytes()));
 	}
 }
